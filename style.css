@@ -22,9 +22,6 @@ h2 {
     margin-bottom: 20px;
 }
 
-/* =========================================
-   ESTILOS DE USUARIO Y HEADER
-   ========================================= */
 header {
     display: flex;
     justify-content: space-between;
@@ -41,9 +38,6 @@ header {
     color: #ffd700;
 }
 
-/* =========================================
-   ESTILOS DE FORMULARIOS (AUTH)
-   ========================================= */
 .auth-box {
     background: #1a1a1a;
     width: 100%;
@@ -134,9 +128,6 @@ header {
     margin-top: 10px;
 }
 
-/* =========================================
-   ESTILOS DE JUEGOS Y UTILIDADES
-   ========================================= */
 .hidden {
     display: none !important;
 }
