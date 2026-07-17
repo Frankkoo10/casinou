@@ -1,18 +1,12 @@
-// 1. Configuración de Supabase 
-// Cambiamos 'const supabase' a 'const supabaseClient' para evitar el error de "has already been declared"
 const supabaseUrl = 'https://wgqqbahoalozgfukioza.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndncXFiYWhvYWxvemdmdWtpb3phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNTA3OTYsImV4cCI6MjA5OTgyNjc5Nn0.v_kpYceS8ceIUBNaLLHjfyBeFA2Y3lDRy7Yn6cb5Uz8';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Referencias a los contenedores principales
 const authSection = document.getElementById('auth-section');
 const juegosSection = document.getElementById('juegos-section');
 const header = document.getElementById('user-header');
 const userEmailSpan = document.getElementById('user-email');
 
-// ==========================================
-// ASIGNACIÓN DE EVENTOS A LOS BOTONES (Sustituye a onclick)
-// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     // Botones de acción principal
     document.getElementById('btn-login').addEventListener('click', iniciarSesion);
@@ -27,11 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('link-to-login-2').addEventListener('click', () => mostrarFormulario('login-box'));
 });
 
-// ==========================================
-// CONTROL DE ESTADO DE SESIÓN (AUTH)
-// ==========================================
-
-// Escucha automáticamente si el usuario inicia o cierra sesión
 supabaseClient.auth.onAuthStateChange((event, session) => {
     if (session) {
         authSection.classList.add('hidden');
@@ -61,10 +50,6 @@ function mostrarFormulario(idFormulario) {
     
     document.getElementById(idFormulario).classList.remove('hidden');
 }
-
-// ==========================================
-// FUNCIONES DE USUARIO
-// ==========================================
 
 async function crearCuenta() {
     const email = document.getElementById('reg-email').value;
@@ -132,10 +117,6 @@ async function recuperarPassword() {
         successMsg.innerText = 'Te hemos enviado un correo con el enlace para restablecer tu contraseña.';
     }
 }
-
-// ==========================================
-// FUNCIONES DE LA BASE DE DATOS
-// ==========================================
 
 async function cargarJuegos() {
     const contenedor = document.getElementById('contenedor-juegos');
