@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Virtual - Juegos</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Script de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <header id="user-header" class="hidden">
+        <div class="header-main">
+            <nav class="header-nav">
+                <img src="Logo-inicial.png" alt="Logo Casino Virtual" class="main-logo">
+                <a href="#" class="nav-item active" id="btn-nav-juegos">Casino</a>
+                <a href="#" class="nav-item" id="btn-nav-deportes">Deportes</a>
+                <a href="#" class="nav-item" id="btn-nav-ranking">Ranking</a>
+            </nav>
+
+            <div class="user-info">
+                <span id="user-balance" class="balance-text">Saldo: Cargando...</span>
+                
+                <div class="deposit-menu-wrapper">
+                    <button class="btn-deposit" id="btn-deposit-main">DEPOSITAR</button>
+                    <div class="deposit-dropdown" id="deposit-dropdown">
+                        <h4 style="color:white; margin-bottom:5px;">Autorrecarga</h4>
+                        <p style="font-size:11px; margin-bottom:10px; color:#aaa;">(Máx $10,000 cada 5 min)</p>
+                        <input type="number" id="deposit-amount" max="10000" min="1" value="1000">
+                        <button id="btn-confirm-deposit" class="btn-primary" style="padding:8px; font-size:13px; margin-top:10px; margin-bottom:5px;">Recargar</button>
+                        <p id="deposit-msg" class="deposit-msg" style="font-size:12px; margin-top:5px; font-weight:bold;"></p>
+                    </div>
+                </div>
+                
+                <div class="profile-menu-wrapper">
+                    <button class="btn-profile" tabindex="0">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </button>
+                    
+                    <div class="profile-dropdown">
+                        <div class="dropdown-header">
+                            <svg viewBox="0 0 24 24" width="35" height="35" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            <span id="user-email">Cargando...</span>
+                        </div>
+                        <div class="dropdown-footer">
+                            <!-- Sección de depósito integrada solo para celulares -->
+                            <div class="mobile-deposit-section" style="display: none; border-top: 1px solid #333; padding-top: 10px; margin-bottom: 10px;">
+                                <p style="font-size:11px; margin-bottom:5px; color:#aaa;">Autorrecarga (Máx $10k)</p>
+                                <input type="number" id="deposit-amount-mobile" max="10000" min="1" value="1000" style="width:100%; padding:5px; margin-bottom:5px; background:#000; color:#fff; border:1px solid #2ecc71; border-radius:5px;">
+                                <button id="btn-confirm-deposit-mobile" class="btn-primary" style="padding:5px; font-size:12px; margin-bottom:0;">Recargar</button>
+                                <p id="deposit-msg-mobile" class="deposit-msg" style="font-size:11px; margin-top:5px; font-weight:bold;"></p>
+                            </div>
+
+                            <a href="TU_LINK_AQUI" class="btn-support">Comunicar un error</a>
+                            <button id="btn-logout" class="btn-logout-dropdown">Cerrar Sesión</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="marquee-container">
+            <div class="marquee-text">¡Apostar es para mayores de edad! ¡Apostá con responsabilidad! ¡+18! - El juego compulsivo es perjudicial para la salud.</div>
+        </div>
+    </header>
+
+    <section id="auth-section">
+        <img src="Logo-pricipio.png" alt="Logo Casino Virtual" class="inicio-logo">
+
+        <div id="login-box" class="auth-box">
+            <h2>Iniciar Sesión</h2>
+            <input type="email" id="login-email" placeholder="Correo electrónico" required>
+            <input type="password" id="login-password" placeholder="Contraseña" required>
+            <button id="btn-login" class="btn-primary">Entrar</button>
+            <p id="link-to-register" class="auth-link">¿No tienes cuenta? Regístrate aquí</p>
+            <p id="link-to-reset" class="auth-link">¿Olvidaste tu contraseña?</p>
+            <p id="login-error" class="error-msg"></p>
+        </div>
+
+        <div id="register-box" class="auth-box hidden">
+            <h2>Crear Cuenta</h2>
+            <input type="email" id="reg-email" placeholder="Correo electrónico" required>
+            <input type="password" id="reg-password" placeholder="Contraseña (Mín. 6 caracteres)" required>
+            <button id="btn-register" class="btn-primary">Registrarse</button>
+            <p id="link-to-login-1" class="auth-link">¿Ya tienes cuenta? Inicia sesión</p>
+            <p id="reg-error" class="error-msg"></p>
+            <p id="reg-success" class="success-msg"></p>
+        </div>
+
+        <div id="reset-box" class="auth-box hidden">
+            <h2>Recuperar Contraseña</h2>
+            <p class="instruction">Ingresa tu correo y te enviaremos un enlace.</p>
+            <input type="email" id="reset-email" placeholder="Correo electrónico" required>
+            <button id="btn-reset" class="btn-primary">Enviar enlace</button>
+            <p id="link-to-login-2" class="auth-link">Volver al inicio de sesión</p>
+            <p id="reset-error" class="error-msg"></p>
+            <p id="reset-success" class="success-msg"></p>
+        </div>
+    </section>
+
+    <section id="juegos-section" class="hidden">
+        <br><br>
+        <h2>Apartado de Juegos</h2>
+        <div class="games-section" id="contenedor-juegos">
+            <p>Cargando juegos...</p>
+        </div>
+    </section>
+
+    <section id="ranking-section" class="hidden">
+        <br><br>
+        <h2>Ranking (Top 10 Jugadores)</h2>
+        <p class="instruction">Clasificación según volumen de apuestas y nivel de ludopatía.</p>
+        <div id="contenedor-ranking" class="ranking-container">
+            <p>Cargando ranking...</p>
+        </div>
+    </section>
+
+    <section id="deportes-section" class="hidden">
+        <br><br>
+        <h2>Deportes Virtuales En Vivo</h2>
+        <p class="instruction">Simulador de eventos. Diferentes mercados y duraciones por deporte.</p>
+        
+        <div class="sports-nav" id="sports-nav">
+            <button id="btn-sport-futbol" class="btn-sport active" onclick="cambiarDeporte('Futbol')">Fútbol</button>
+            <button id="btn-sport-tenis" class="btn-sport" onclick="cambiarDeporte('Tenis')">Tenis</button>
+            <button id="btn-sport-basketball" class="btn-sport" onclick="cambiarDeporte('Basketball')">Básquetbol</button>
+            <button id="btn-sport-ufc" class="btn-sport" onclick="cambiarDeporte('UFC')">UFC</button>
+        </div>
+
+        <div class="sports-timer-panel">
+            <h3 id="sports-status">Fase de Apuestas</h3>
+            <p id="sports-timer">90s</p>
+        </div>
+
+        <div class="league-selector" id="league-selector">
+            <!-- Se carga dinámicamente desde JS -->
+        </div>
+
+        <div class="sports-layout">
+            <div class="sports-section" id="contenedor-partidos">
+                <p>Cargando eventos y competidores...</p>
+            </div>
+
+            <div class="side-panels">
+                
+                <div id="bet-ticket" class="ticket-panel hidden">
+                    <div class="ticket-header">
+                        <h3>Boleta de Apuesta</h3>
+                        <div>
+                            <span id="ticket-type" class="badge">Simple</span>
+                            <button class="btn-close-ticket-mobile" onclick="toggleMobileTicket()">X</button>
+                        </div>
+                    </div>
+                    <div id="ticket-items" class="ticket-items">
+                    </div>
+                    <div class="ticket-summary">
+                        <div class="summary-row">
+                            <span>Cuota Total:</span>
+                            <span id="ticket-total-odds" class="highlight">1.00</span>
+                        </div>
+                        
+                        <div class="quick-amounts">
+                            <button onclick="sumarMontoTicket(500)">+$500</button>
+                            <button onclick="sumarMontoTicket(2500)">+$2.5k</button>
+                            <button onclick="sumarMontoTicket(5000)">+$5k</button>
+                            <button onclick="sumarMontoTicket(10000)">+$10k</button>
+                        </div>
+
+                        <input type="number" id="ticket-amount" placeholder="Monto a apostar $" min="1" oninput="actualizarGanancia()">
+                        
+                        <div class="summary-row win-row">
+                            <span>Ganancia Posible:</span>
+                            <span id="ticket-potential-win" class="highlight-green">$0.00</span>
+                        </div>
+                        
+                        <button id="btn-confirm-bet" class="btn-primary" onclick="confirmarApuesta()">APOSTAR</button>
+                        <button class="btn-clear" onclick="limpiarTicket()">Limpiar Boleta</button>
+                    </div>
+                </div>
+
+                <div id="bet-history" class="history-panel">
+                    <div class="ticket-header">
+                        <h3>Mis Apuestas</h3>
+                        <button class="btn-clear-history" onclick="borrarHistorialBD()">Borrar Todo</button>
+                    </div>
+                    <div id="history-items" class="history-items">
+                        <p class="empty-msg">Cargando historial...</p>
+                    </div>
+                </div>
+
+            </div> 
+        </div>
+    </section>
+
+    <!-- Globito para celular -->
+    <div id="bet-bubble" class="bet-bubble hidden" onclick="toggleMobileTicket()">
+        🎟️ <span id="bubble-count">0</span>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
