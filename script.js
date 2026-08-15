@@ -24,8 +24,7 @@ let apuestasUsuario = [];
 let ticketSelecciones = []; 
 let ligasDisponibles = [];
 let ligaActual = '';
-// MODIFICADO: Ahora recuerda el último deporte que viste
-let deporteActual = localStorage.getItem('activeSport') || 'Futbol'; 
+let deporteActual = localStorage.getItem('deporteActual') || 'Futbol'; 
 
 const globalBetTime = 90; 
 const globalPlayTime = 95; 
@@ -41,6 +40,32 @@ const configDeportes = {
 let globalRoundId = -1;
 let faseApuestasAbierta = true;
 
+// NUEVO: Función para navegar guardando el estado
+window.navegarA = function(sectionId) {
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+    const target = document.getElementById(sectionId);
+    if(target) target.classList.add('active');
+
+    juegosSection.classList.add('hidden');
+    deportesSection.classList.add('hidden');
+    rankingSection.classList.add('hidden');
+
+    localStorage.setItem('activeSection', sectionId);
+
+    if (sectionId === 'btn-nav-juegos') {
+        juegosSection.classList.remove('hidden');
+    } else if (sectionId === 'btn-nav-deportes') {
+        deportesSection.classList.remove('hidden');
+        let savedDeporte = localStorage.getItem('deporteActual') || 'Futbol';
+        deporteActual = savedDeporte;
+        inicializarDeportes();
+        cambiarDeporte(savedDeporte);
+    } else if (sectionId === 'btn-nav-ranking') {
+        rankingSection.classList.remove('hidden');
+        cargarRanking();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-login').addEventListener('click', iniciarSesion);
     document.getElementById('btn-register').addEventListener('click', crearCuenta);
@@ -52,38 +77,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('link-to-login-1').addEventListener('click', () => mostrarFormulario('login-box'));
     document.getElementById('link-to-login-2').addEventListener('click', () => mostrarFormulario('login-box'));
 
-    // Autorrecarga remapeada para que funcione desde dentro del perfil
     document.getElementById('btn-confirm-deposit').addEventListener('click', autoRecarga);
-
-    // MODIFICADO: Pinta el botón del deporte guardado al cargar la página
-    document.querySelectorAll('.btn-sport').forEach(btn => btn.classList.remove('active'));
-    const btnActivarSport = document.getElementById('btn-sport-' + deporteActual.toLowerCase());
-    if(btnActivarSport) btnActivarSport.classList.add('active');
 
     const navItems = document.querySelectorAll('.nav-item');
 
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault(); 
-            navItems.forEach(nav => nav.classList.remove('active'));
-            e.target.classList.add('active');
-
-            juegosSection.classList.add('hidden');
-            deportesSection.classList.add('hidden');
-            rankingSection.classList.add('hidden');
-
-            // GUARDA EL ESTADO DE LA VENTANA EN LOCALSTORAGE
-            localStorage.setItem('activeSection', e.target.id);
-
-            if (e.target.id === 'btn-nav-juegos') {
-                juegosSection.classList.remove('hidden');
-            } else if (e.target.id === 'btn-nav-deportes') {
-                deportesSection.classList.remove('hidden');
-                inicializarDeportes();
-            } else if (e.target.id === 'btn-nav-ranking') {
-                rankingSection.classList.remove('hidden');
-                cargarRanking();
-            }
+            navegarA(e.target.id);
         });
     });
 });
@@ -92,23 +93,13 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
     if (session) {
         currentUserId = session.user.id;
         authSection.classList.add('hidden');
-        juegosSection.classList.remove('hidden');
-        deportesSection.classList.add('hidden');
-        rankingSection.classList.add('hidden');
-        
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        
-        // RECUPERA EL ESTADO PREVIO GUARDADO, O ENTRA A JUEGOS POR DEFECTO
-        const savedSection = localStorage.getItem('activeSection');
-        if (savedSection && document.getElementById(savedSection)) {
-            document.getElementById(savedSection).click();
-        } else {
-            document.getElementById('btn-nav-juegos').click();
-        }
-
         header.classList.remove('hidden');
         userEmailSpan.innerText = `Jugador: ${session.user.email}`;
        
+        // RECUPERA EL ESTADO PREVIO GUARDADO, O ENTRA A JUEGOS POR DEFECTO
+        const savedSection = localStorage.getItem('activeSection') || 'btn-nav-juegos';
+        navegarA(savedSection);
+
         cargarSaldoYDatos(session.user.id);
         cargarJuegos();
         cargarHistorialDesdeBD();
@@ -295,7 +286,6 @@ async function cargarHistorialDesdeBD() {
         });
     }
 
-    // PRE-CARGA DE EQUIPOS PARA RESOLVER APUESTAS PENDIENTES EN SEGUNDO PLANO
     if (equiposGlobales.length === 0) {
         const { data: equipos } = await supabaseClient.from('equipos').select('*');
         if (equipos) equiposGlobales = equipos;
@@ -389,8 +379,7 @@ function detenerDeportes() {
 
 window.cambiarDeporte = function(nuevoDeporte) {
     deporteActual = nuevoDeporte;
-    // MODIFICADO: Guarda el deporte seleccionado
-    localStorage.setItem('activeSport', nuevoDeporte); 
+    localStorage.setItem('deporteActual', nuevoDeporte); // GUARDA EL DEPORTE ACTUAL
     document.querySelectorAll('.btn-sport').forEach(btn => btn.classList.remove('active'));
     
     const btnActivar = document.getElementById('btn-sport-' + nuevoDeporte.toLowerCase());
@@ -405,11 +394,9 @@ function actualizarLigasPorDeporte() {
     let equiposDelDeporte = equiposGlobales.filter(e => (e.deporte || 'Futbol') === deporteActual);
     ligasDisponibles = [...new Set(equiposDelDeporte.map(e => e.liga || 'General'))];
     
-    // MODIFICADO: Recuerda la liga
-    let savedLeague = localStorage.getItem('activeLeague');
-
-    if (savedLeague && ligasDisponibles.includes(savedLeague)) {
-        ligaActual = savedLeague;
+    let savedLiga = localStorage.getItem('ligaActual');
+    if (savedLiga && ligasDisponibles.includes(savedLiga)) {
+        ligaActual = savedLiga;
     } else if (!ligasDisponibles.includes(ligaActual) && ligasDisponibles.length > 0) {
         ligaActual = ligasDisponibles[0];
     } else if (ligasDisponibles.length === 0) {
@@ -435,8 +422,7 @@ function renderizarSelectorLigas() {
 
 function cambiarLiga(nuevaLiga) {
     ligaActual = nuevaLiga;
-    // MODIFICADO: Guarda la liga seleccionada
-    localStorage.setItem('activeLeague', nuevaLiga);
+    localStorage.setItem('ligaActual', nuevaLiga); // GUARDA LA LIGA ACTUAL
     renderizarSelectorLigas();
     renderizarPartidos();
 }
@@ -698,7 +684,6 @@ function iniciarRondaSincronizadaPorDeporte(deporte, roundId) {
             let local = mezclados[i];
             let visitante = mezclados[i+1];
             
-            // EL ID AHORA INCLUYE EL ROUND PARA RESOLVER OFFLINE SI CIERRAS LA PESTAÑA
             let nuevoPartido = {
                 id: `match_${local.id}_${visitante.id}_${deporte}_${roundId}`,
                 deporte: deporte,
@@ -773,7 +758,6 @@ function cicloDeportes() {
         }
     }
 
-    // Pinta en vivo constantemente el bloque de los partidos apostados
     renderizarMisPartidosEnVivo();
 }
 
@@ -1142,7 +1126,7 @@ window.confirmarApuesta = function() {
 
     guardarApuestaBD(nuevaApuesta);
     limpiarTicket();
-    cerrarMobileTicket(); // Se cierra en movil al apostar
+    cerrarMobileTicket();
 }
 
 function renderizarHistorial() {
@@ -1182,7 +1166,6 @@ function renderizarHistorial() {
         `;
     });
     
-    // NUEVO: Asegurarse de repintar los partidos en vivo tras guardar/recibir cambios en historial
     renderizarMisPartidosEnVivo();
 }
 
@@ -1236,7 +1219,7 @@ function verificarSeleccion(seleccion, partido) {
     return false;
 }
 
-// RESOLVEDOR DE APUESTAS EN VIVO Y OFFLINE/EN SEGUNDO PLANO
+// EL GRAN ARREGLO: ELIMINACIÓN DEL CRASH Y RESOLUCIÓN PERFECTA
 function resolverApuestas() {
     let gananciasRonda = 0;
 
@@ -1271,8 +1254,7 @@ function resolverApuestas() {
             gananciasRonda += apuesta.monto;
         } else if (boletaGanadora) {
             apuesta.estado = 'ganada';
-            // MODIFICADO: Estaba como "gananciasPosible" lo cual era un error matemático grave que rompía la lógica
-            gananciasRonda += apuesta.gananciaPosible; 
+            gananciasRonda += apuesta.gananciaPosible; // ¡AQUÍ ESTABA EL ERROR! CORREGIDO
         } else {
             apuesta.estado = 'perdida';
         }
@@ -1287,8 +1269,6 @@ function resolverApuestas() {
     renderizarHistorial();
 }
 
-// NUEVA FUNCIÓN MATEMÁTICA: Si cierras el casino y entras tarde, esto reconstruye los partidos
-// pasados en la memoria y resuelve si ganaste o perdiste tus tickets atrasados.
 async function resolverApuestasOffline() {
     if (!currentUserId || equiposGlobales.length === 0) return;
     const now = Math.floor(Date.now() / 1000);
@@ -1312,7 +1292,6 @@ async function resolverApuestasOffline() {
                     let pRoundId = parseInt(parts[4]);
 
                     if (pRoundId < currentGlobalRoundId) {
-                        // El partido es del pasado, el casino simula su resultado offline!
                         let seedObj = { val: (pRoundId * 1000) + deporte.length };
                         let local = equiposGlobales.find(e => e.id == localId);
                         let visitante = equiposGlobales.find(e => e.id == visId);
@@ -1331,10 +1310,10 @@ async function resolverApuestasOffline() {
                             partidoExtraviado = true;
                         }
                     } else {
-                        todosFinalizados = false; // El partido sigue jugándose en vivo
+                        todosFinalizados = false; 
                     }
                 } else {
-                    partidoExtraviado = true; // Boleta vieja sin ID matemático
+                    partidoExtraviado = true; 
                 }
             }
 
@@ -1342,7 +1321,7 @@ async function resolverApuestasOffline() {
                 apuesta.resuelta = true;
                 if (partidoExtraviado) {
                     apuesta.estado = 'cancelada';
-                    apuesta.gananciaPosible = apuesta.monto; // te devuelve la plata
+                    apuesta.gananciaPosible = apuesta.monto; 
                     gananciasRecuperadas += apuesta.monto;
                 } else if (boletaGanadora) {
                     apuesta.estado = 'ganada';
@@ -1360,16 +1339,12 @@ async function resolverApuestasOffline() {
     if (actualizadas) { renderizarHistorial(); }
 }
 
-// Bucle en segundo plano para revisar apuestas pendientes si sigues conectado en el apartado "Juegos"
 setInterval(() => {
     if(currentUserId && apuestasUsuario.some(a => a.estado === 'pendiente')) {
         resolverApuestasOffline();
     }
 }, 15000);
 
-// =========================================================================
-// NUEVO: SISTEMA DE VISUALIZACIÓN DE PARTIDOS APOSTADOS EN VIVO
-// =========================================================================
 function renderizarMisPartidosEnVivo() {
     const contenedor = document.getElementById('live-user-matches');
     if (!contenedor) return;
