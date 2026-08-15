@@ -24,7 +24,8 @@ let apuestasUsuario = [];
 let ticketSelecciones = []; 
 let ligasDisponibles = [];
 let ligaActual = '';
-let deporteActual = 'Futbol'; 
+// MODIFICADO: Ahora recuerda el último deporte que viste
+let deporteActual = localStorage.getItem('activeSport') || 'Futbol'; 
 
 const globalBetTime = 90; 
 const globalPlayTime = 95; 
@@ -53,6 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Autorrecarga remapeada para que funcione desde dentro del perfil
     document.getElementById('btn-confirm-deposit').addEventListener('click', autoRecarga);
+
+    // MODIFICADO: Pinta el botón del deporte guardado al cargar la página
+    document.querySelectorAll('.btn-sport').forEach(btn => btn.classList.remove('active'));
+    const btnActivarSport = document.getElementById('btn-sport-' + deporteActual.toLowerCase());
+    if(btnActivarSport) btnActivarSport.classList.add('active');
 
     const navItems = document.querySelectorAll('.nav-item');
 
@@ -383,6 +389,8 @@ function detenerDeportes() {
 
 window.cambiarDeporte = function(nuevoDeporte) {
     deporteActual = nuevoDeporte;
+    // MODIFICADO: Guarda el deporte seleccionado
+    localStorage.setItem('activeSport', nuevoDeporte); 
     document.querySelectorAll('.btn-sport').forEach(btn => btn.classList.remove('active'));
     
     const btnActivar = document.getElementById('btn-sport-' + nuevoDeporte.toLowerCase());
@@ -397,7 +405,12 @@ function actualizarLigasPorDeporte() {
     let equiposDelDeporte = equiposGlobales.filter(e => (e.deporte || 'Futbol') === deporteActual);
     ligasDisponibles = [...new Set(equiposDelDeporte.map(e => e.liga || 'General'))];
     
-    if (!ligasDisponibles.includes(ligaActual) && ligasDisponibles.length > 0) {
+    // MODIFICADO: Recuerda la liga
+    let savedLeague = localStorage.getItem('activeLeague');
+
+    if (savedLeague && ligasDisponibles.includes(savedLeague)) {
+        ligaActual = savedLeague;
+    } else if (!ligasDisponibles.includes(ligaActual) && ligasDisponibles.length > 0) {
         ligaActual = ligasDisponibles[0];
     } else if (ligasDisponibles.length === 0) {
         ligaActual = '';
@@ -422,6 +435,8 @@ function renderizarSelectorLigas() {
 
 function cambiarLiga(nuevaLiga) {
     ligaActual = nuevaLiga;
+    // MODIFICADO: Guarda la liga seleccionada
+    localStorage.setItem('activeLeague', nuevaLiga);
     renderizarSelectorLigas();
     renderizarPartidos();
 }
@@ -758,7 +773,7 @@ function cicloDeportes() {
         }
     }
 
-    // NUEVO: Pinta en vivo constantemente el bloque de los partidos apostados
+    // Pinta en vivo constantemente el bloque de los partidos apostados
     renderizarMisPartidosEnVivo();
 }
 
@@ -1256,7 +1271,8 @@ function resolverApuestas() {
             gananciasRonda += apuesta.monto;
         } else if (boletaGanadora) {
             apuesta.estado = 'ganada';
-            gananciasRonda += gananciasPosible; // Fix: usar gananciaPosible
+            // MODIFICADO: Estaba como "gananciasPosible" lo cual era un error matemático grave que rompía la lógica
+            gananciasRonda += apuesta.gananciaPosible; 
         } else {
             apuesta.estado = 'perdida';
         }
