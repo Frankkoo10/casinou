@@ -143,7 +143,7 @@ function aplicarSeparacionDeRoles(perfil, paginaActual) {
     const rol = (perfil && perfil.rol) || 'jugador';
     if (paginaActual === 'jugador' && (rol === 'operador' || rol === 'admin')) {
         alert('Esta cuenta tiene rol ' + rol + '. No puede jugar como usuario. Te llevamos a tu panel.');
-        window.location.href = rol === 'admin' ? 'admin.html' : 'operador.html';
+        window.location.href = rol === 'admin' ? 'https://frankkoo10.github.io/casinou-admin/' : 'https://frankkoo10.github.io/casinou-operador/';
         return true;
     }
     return false;
