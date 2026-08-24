@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victory — Casino Virtual</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="timeout-overlay" class="timeout-overlay hidden">
+        <div class="timeout-card">
+            <img src="imagen_reloj.png" alt="" class="timeout-icon">
+            <h2 id="timeout-title">Tomá un descanso</h2>
+            <p id="timeout-copy">Estás en un período de pausa. No podés apostar ni jugar hasta que termine.</p>
+            <div class="timeout-countdown" id="timeout-countdown">--:--:--</div>
+            <p class="timeout-hint">Este bloqueo está guardado en el servidor. No se puede saltear recargando ni borrando datos.</p>
+            <div class="timeout-actions">
+                <a href="cuenta.html" class="btn-primary">Ir a Mi Cuenta</a>
+                <button type="button" id="btn-timeout-logout" class="btn-logout-dropdown">Cerrar sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <header id="user-header" class="hidden">
+        <div class="rest-banner" id="rest-banner">
+            <span>TOMATE UN DESCANSO</span>
+            <span class="rest-banner-sub">12h de descanso de apostar y jugar · Juego responsable +18</span>
+            <button type="button" id="btn-banner-descanso">Activar pausa</button>
+        </div>
+        <div class="header-main">
+            <nav class="header-nav">
+                <img src="Logo-inicial.png" alt="Victory" class="main-logo">
+                <a href="#" class="nav-item active" id="btn-nav-juegos">Casino</a>
+                <a href="#" class="nav-item" id="btn-nav-juegos-vivo">Casino En Vivo</a>
+                <a href="#" class="nav-item" id="btn-nav-deportes">Deportes</a>
+                <a href="#" class="nav-item" id="btn-nav-ranking">Ranking</a>
+            </nav>
+
+            <div class="user-info">
+                <button type="button" class="btn-icon-header" id="btn-open-chat-header" title="Soporte">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.3 4.5 3.4 6L4 21l4.3-1.5c1.1.4 2.4.6 3.7.6 5.5 0 10-3.6 10-8S17.5 3 12 3zm0 14c-1.1 0-2.2-.2-3.2-.5l-.3-.1-2.5.9.7-2.2-.2-.2C5.3 13.8 4.5 12.5 4.5 11c0-3.3 3.4-6 7.5-6s7.5 2.7 7.5 6-3.4 6-7.5 6z"/></svg>
+                    <span id="chat-unread-badge" class="chat-badge hidden">0</span>
+                </button>
+
+                <div class="profile-menu-wrapper">
+                    <button type="button" class="btn-profile" id="btn-profile-toggle" aria-label="Perfil">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </button>
+
+                    <div class="profile-dropdown" id="profile-dropdown">
+                        <div class="dropdown-top-icons">
+                            <span class="drop-mini" title="Soporte" id="drop-support">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 1a9 9 0 00-9 9v4a3 3 0 003 3h1v-8H6a7 7 0 1114 0h-1v8h1a3 3 0 003-3v-4a9 9 0 00-9-9z"/></svg>
+                            </span>
+                            <span class="drop-mini drop-mini-active">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            </span>
+                        </div>
+                        <div class="dropdown-username" id="user-email">Cargando...</div>
+
+                        <div class="dropdown-saldo-box">
+                            <div class="saldo-row">
+                                <span>Saldo <button type="button" class="btn-eye" id="btn-toggle-saldo" title="Ocultar saldo">👁</button></span>
+                                <strong id="drop-saldo">$0,00</strong>
+                            </div>
+                            <div class="saldo-row muted">
+                                <span>Disponible para apostar</span>
+                                <span id="drop-saldo-apostar">$0,00</span>
+                            </div>
+                            <div class="saldo-row muted">
+                                <span>Disponible para retirar</span>
+                                <span id="drop-saldo-retirar">$0,00</span>
+                            </div>
+                            <button type="button" class="btn-actualizar" id="btn-refresh-saldo">↻ Actualizar</button>
+                        </div>
+
+                        <a href="cuenta.html" class="btn-mi-cuenta">MI CUENTA</a>
+                        <button type="button" id="btn-logout" class="btn-logout-icon" title="Cerrar sesión">Cerrar sesión</button>
+                    </div>
+                </div>
+
+                <span id="user-balance" class="balance-text">$0,00</span>
+                <button type="button" class="btn-depositar" id="btn-open-deposit">DEPOSITAR</button>
+            </div>
+        </div>
+        <div class="marquee-container">
+            <div class="marquee-text">¡Apostar es para mayores de edad! ¡Apostá con responsabilidad! ¡+18! - El juego compulsivo es perjudicial para la salud. — Victory no solicita DNI ni datos bancarios: es un simulador escolar.</div>
+        </div>
+    </header>
+
+    <aside id="deposit-drawer" class="deposit-drawer hidden" aria-hidden="true">
+        <div class="deposit-drawer-inner">
+            <div class="deposit-drawer-head">
+                <h3>Depósito</h3>
+                <button type="button" class="btn-close-drawer" id="btn-close-deposit">✕</button>
+            </div>
+            <p class="deposit-intro">Poné el monto y elegí a qué operador le mandás la solicitud. El cajero de Victory la revisa y te acredita las fichas desde el panel operador.</p>
+
+            <div id="deposit-form" class="deposit-form">
+                <label>Monto a solicitar</label>
+                <input type="number" id="deposit-request-amount" min="100" step="100" value="5000">
+                <div class="quick-amounts">
+                    <button type="button" data-add="1000">+$1.000</button>
+                    <button type="button" data-add="5000">+$5.000</button>
+                    <button type="button" data-add="10000">+$10.000</button>
+                    <button type="button" data-add="25000">+$25.000</button>
+                </div>
+                <label>Operador</label>
+                <select id="deposit-operador">
+                    <option value="">Cargando operadores...</option>
+                </select>
+                <button type="button" id="btn-send-deposit" class="btn-primary">Solicitar carga al cajero</button>
+                <p id="deposit-request-msg" class="deposit-msg"></p>
+            </div>
+
+            <div class="last-deposit-card" id="last-deposit-card">
+                <p class="deposit-label">ÚLTIMO DEPÓSITO</p>
+                <p id="last-deposit-info">Todavía no hay depósitos.</p>
+            </div>
+        </div>
+    </aside>
+    <div id="deposit-backdrop" class="drawer-backdrop hidden"></div>
+
+    <section id="auth-section">
+        <img src="Logo-pricipio.png" alt="Victory" class="inicio-logo">
+
+        <div id="login-box" class="auth-box">
+            <h2>Iniciar Sesión</h2>
+            <input type="email" id="login-email" placeholder="Correo electrónico" required>
+            <input type="password" id="login-password" placeholder="Contraseña" required>
+            <button id="btn-login" class="btn-primary">Entrar</button>
+            <p id="link-to-register" class="auth-link">¿No tienes cuenta? Regístrate aquí</p>
+            <p id="link-to-reset" class="auth-link">¿Olvidaste tu contraseña?</p>
+            <p id="login-error" class="error-msg"></p>
+            <p class="auth-link"><a href="https://frankkoo10.github.io/casinou-operador/" style="color:#f185ff;">Acceso operadores / cajero</a></p>
+        </div>
+
+        <div id="register-box" class="auth-box hidden">
+            <h2>Crear Cuenta</h2>
+            <input type="text" id="reg-username" placeholder="Nombre de usuario" maxlength="20" required>
+            <input type="email" id="reg-email" placeholder="Correo electrónico" required>
+            <input type="password" id="reg-password" placeholder="Contraseña (mín. 6 caracteres)" required>
+            <input type="password" id="reg-password-2" placeholder="Confirmar contraseña" required>
+            <input type="number" id="reg-edad" placeholder="Edad" min="1" max="120" required>
+            <select id="reg-estado-civil" required>
+                <option value="">Estado civil</option>
+                <option value="soltero">Soltero/a</option>
+                <option value="en_pareja">En pareja</option>
+                <option value="casado">Casado/a</option>
+                <option value="divorciado">Divorciado/a</option>
+                <option value="viudo">Viudo/a</option>
+            </select>
+            <label class="check-18">
+                <input type="checkbox" id="reg-mayor"> Soy mayor de 18 años y juego con responsabilidad
+            </label>
+            <button id="btn-register" class="btn-primary">Registrarse</button>
+            <p id="link-to-login-1" class="auth-link">¿Ya tienes cuenta? Inicia sesión</p>
+            <p id="reg-error" class="error-msg"></p>
+            <p id="reg-success" class="success-msg"></p>
+        </div>
+
+        <div id="reset-box" class="auth-box hidden">
+            <h2>Recuperar Contraseña</h2>
+            <p class="instruction">Ingresa tu correo y te enviaremos un enlace.</p>
+            <input type="email" id="reset-email" placeholder="Correo electrónico" required>
+            <button id="btn-reset" class="btn-primary">Enviar enlace</button>
+            <p id="link-to-login-2" class="auth-link">Volver al inicio de sesión</p>
+            <p id="reset-error" class="error-msg"></p>
+            <p id="reset-success" class="success-msg"></p>
+        </div>
+    </section>
+
+    <section id="juegos-section" class="hidden">
+        <br><br>
+        <h2>Apartado de Juegos</h2>
+        <div class="games-section" id="contenedor-juegos">
+            <p>Cargando juegos...</p>
+        </div>
+        <div class="prevencion-box">
+            <h4>Juego responsable</h4>
+            <div class="prevencion-media" id="prevencion-media-1">
+                <img src="_consintizacion3_.png" alt="Apostémosle a la vida, no al riesgo">
+            </div>
+            <p>Línea de ayuda: 0800-444-4000, gratuita y confidencial.</p>
+        </div>
+    </section>
+
+    <section id="juegos-vivo-section" class="hidden">
+        <br><br>
+        <h2>Juegos en Vivo</h2>
+        <div class="games-section" id="contenedor-juegos-vivo">
+            <p>Cargando juegos en vivo...</p>
+        </div>
+    </section>
+
+    <section id="ranking-section" class="hidden">
+        <br><br>
+        <h2>Ranking (Top 10 Jugadores)</h2>
+        <p class="instruction">Clasificación según volumen de apuestas y nivel de ludopatía.</p>
+        <div id="contenedor-ranking" class="ranking-container">
+            <p>Cargando ranking...</p>
+        </div>
+    </section>
+
+    <section id="deportes-section" class="hidden">
+        <br><br>
+        <h2>Deportes Virtuales En Vivo</h2>
+        <p class="instruction">Simulador de eventos. Diferentes mercados y duraciones por deporte.</p>
+
+        <div class="sports-nav" id="sports-nav">
+            <button id="btn-sport-futbol" class="btn-sport active" onclick="cambiarDeporte('Futbol')">Fútbol</button>
+            <button id="btn-sport-tenis" class="btn-sport" onclick="cambiarDeporte('Tenis')">Tenis</button>
+            <button id="btn-sport-basketball" class="btn-sport" onclick="cambiarDeporte('Basketball')">Básquetbol</button>
+            <button id="btn-sport-ufc" class="btn-sport" onclick="cambiarDeporte('UFC')">UFC</button>
+        </div>
+
+        <div class="sports-timer-panel">
+            <h3 id="sports-status">Fase de Apuestas</h3>
+            <p id="sports-timer">90s</p>
+        </div>
+
+        <div class="league-selector" id="league-selector"></div>
+
+        <div class="sports-layout">
+            <div class="left-panels">
+                <div class="live-bets-panel">
+                    <div class="ticket-header">
+                        <h3>Mis Partidos en Vivo</h3>
+                    </div>
+                    <div id="live-user-matches" class="live-matches-items">
+                        <p class="empty-msg">No tienes apuestas activas en este momento.</p>
+                    </div>
+                </div>
+                <div class="prevencion-box">
+                    <h4>¿El juego dejó de ser diversión?</h4>
+                    <div class="prevencion-media" id="prevencion-media-2">
+                        <img src="MESSI_ANTIAPUESTAS_.png" alt="Si tenés un problema con las apuestas, ponele un freno">
+                    </div>
+                    <p>Llamá gratis al 0800-444-4000. Es confidencial.</p>
+                </div>
+            </div>
+
+            <div class="sports-section" id="contenedor-partidos">
+                <p>Cargando eventos y competidores...</p>
+            </div>
+
+            <div class="side-panels">
+                <div id="bet-ticket" class="ticket-panel hidden">
+                    <div class="ticket-header">
+                        <h3>Boleta de Apuesta</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span id="ticket-type" class="badge">Simple</span>
+                            <button class="btn-close-ticket" onclick="cerrarMobileTicket()">X</button>
+                        </div>
+                    </div>
+                    <div id="ticket-items" class="ticket-items"></div>
+                    <div class="ticket-summary">
+                        <div class="summary-row">
+                            <span>Cuota Total:</span>
+                            <span id="ticket-total-odds" class="highlight">1.00</span>
+                        </div>
+                        <div class="quick-amounts">
+                            <button onclick="sumarMontoTicket(500)">+$500</button>
+                            <button onclick="sumarMontoTicket(2500)">+$2.5k</button>
+                            <button onclick="sumarMontoTicket(5000)">+$5k</button>
+                            <button onclick="sumarMontoTicket(10000)">+$10k</button>
+                        </div>
+                        <input type="number" id="ticket-amount" placeholder="Monto a apostar $" min="1" oninput="actualizarGanancia()">
+                        <div class="summary-row win-row">
+                            <span>Ganancia Posible:</span>
+                            <span id="ticket-potential-win" class="highlight-green">$0.00</span>
+                        </div>
+                        <button id="btn-confirm-bet" class="btn-primary" onclick="confirmarApuesta()">APOSTAR</button>
+                        <button class="btn-clear" onclick="limpiarTicket()">Limpiar Boleta</button>
+                    </div>
+                </div>
+
+                <div id="bet-history" class="history-panel">
+                    <div class="ticket-header">
+                        <h3>Mis Apuestas</h3>
+                        <button class="btn-clear-history" onclick="borrarHistorialBD()">Borrar Todo</button>
+                    </div>
+                    <div id="history-items" class="history-items">
+                        <p class="empty-msg">Cargando historial...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <button id="btn-floating-ticket" class="hidden" onclick="toggleMobileTicket()">
+        <img src="boleto.png" class="custom-emoji" alt="Boleto"> Boleto <span id="floating-ticket-count" style="background:#9200a5; color: white; border-radius:50%; padding:2px 6px; font-size:12px; margin-left:5px;">0</span>
+    </button>
+
+    <div id="chat-panel" class="chat-panel hidden">
+        <div class="chat-head">
+            <div>
+                <strong>Operador Victory</strong>
+                <small>Siempre online · historial guardado</small>
+            </div>
+            <button type="button" id="btn-chat-close">✕</button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <p class="chat-empty">Escribile al operador. El historial queda guardado.</p>
+        </div>
+        <form id="chat-form" class="chat-form">
+            <input type="text" id="chat-input" placeholder="Escribí un mensaje..." maxlength="500" autocomplete="off">
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <script src="shared.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
