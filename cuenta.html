@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cuenta — Victory</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="account-body">
+    <div class="acc-shell">
+        <aside class="acc-sidebar">
+            <a href="https://frankkoo10.github.io/casinou/" class="acc-logo-link">
+                <img src="Logo-pricipio.png" alt="Victory" class="acc-logo">
+            </a>
+            <nav class="acc-nav">
+                <button type="button" class="acc-nav-btn active" data-view="resumen">Resumen</button>
+                <button type="button" class="acc-nav-btn" data-view="deposito">Depósito / Retiro</button>
+                <button type="button" class="acc-nav-btn" data-view="apuestas">Historial de apuestas</button>
+                <button type="button" class="acc-nav-btn" data-view="transacciones">Transacciones</button>
+                <button type="button" class="acc-nav-btn" data-view="pyg">Apuestas ganadas y perdidas</button>
+                <button type="button" class="acc-nav-btn" data-view="datos">Datos personales</button>
+                <button type="button" class="acc-nav-btn" data-view="proteccion">Protección al jugador</button>
+            </nav>
+            <a href="https://frankkoo10.github.io/casinou/" class="acc-back">← Volver al casino</a>
+            <button type="button" id="acc-logout" class="acc-logout">Cerrar sesión</button>
+        </aside>
+
+        <main class="acc-main">
+            <header class="acc-top">
+                <h1 id="acc-title">Resumen</h1>
+                <div class="acc-user-chip">
+                    <span id="acc-username">—</span>
+                </div>
+            </header>
+
+            <section id="view-resumen" class="acc-view">
+                <div class="acc-cards">
+                    <article class="acc-stat">
+                        <span>Saldo</span>
+                        <strong id="res-saldo">$0,00</strong>
+                    </article>
+                    <article class="acc-stat">
+                        <span>Total apostado</span>
+                        <strong id="res-apostado">$0,00</strong>
+                    </article>
+                    <article class="acc-stat">
+                        <span>Apuestas abiertas</span>
+                        <strong id="res-abiertas">0</strong>
+                    </article>
+                </div>
+                <div class="acc-panel">
+                    <h3>Actividad reciente</h3>
+                    <div id="res-reciente" class="acc-list">Cargando...</div>
+                </div>
+                <div class="prevencion-box">
+                    <h4>Juego responsable</h4>
+                    <div class="prevencion-media"><img src="diego_prevencion_.png" alt="Si tenés una adicción, llamá al 0800-444-4000"></div>
+                    <p>Poné acá el contenido de tu campaña escolar de prevención de ludopatía.</p>
+                </div>
+            </section>
+
+            <section id="view-deposito" class="acc-view hidden">
+                <div class="prevencion-box">
+                    <div class="prevencion-media"><img src="_consintizacion4_.png" alt="No apuestes tu sueño"></div>
+                </div>
+                <div class="acc-subtabs">
+                    <button type="button" class="acc-subtab active" data-subtab="dep-form-deposito">Depositar</button>
+                    <button type="button" class="acc-subtab" data-subtab="dep-form-retiro">Retirar</button>
+                </div>
+
+                <div id="dep-form-deposito" class="acc-subform">
+                    <div class="acc-panel">
+                        <h3>Solicitar depósito</h3>
+                        <p class="acc-help">Poné el monto y elegí a qué operador le mandás la solicitud. El cajero la revisa y te acredita las fichas.</p>
+                        <label>Monto</label>
+                        <input type="number" id="dep-monto" min="100" value="5000">
+                        <div class="quick-amounts" id="dep-quick-amounts">
+                            <button type="button" data-add="1000">+$1.000</button>
+                            <button type="button" data-add="5000">+$5.000</button>
+                            <button type="button" data-add="10000">+$10.000</button>
+                            <button type="button" data-add="25000">+$25.000</button>
+                        </div>
+                        <label>Operador</label>
+                        <select id="dep-operador">
+                            <option value="">Cargando operadores...</option>
+                        </select>
+                        <button type="button" id="dep-enviar" class="btn-primary">Enviar solicitud</button>
+                        <p id="dep-msg" class="deposit-msg"></p>
+                    </div>
+                </div>
+
+                <div id="dep-form-retiro" class="acc-subform hidden">
+                    <div class="acc-panel">
+                        <h3>Solicitar retiro</h3>
+                        <p class="acc-help">Simulador escolar: el retiro lo procesa el operador. No hay datos bancarios.</p>
+                        <label>Monto</label>
+                        <input type="number" id="ret-monto" min="100" value="1000">
+                        <button type="button" id="ret-enviar" class="btn-primary">Pedir retiro</button>
+                        <p id="ret-msg" class="deposit-msg"></p>
+                    </div>
+                </div>
+
+                <div class="acc-panel">
+                    <h3>Mis solicitudes</h3>
+                    <div id="dep-lista" class="acc-list">Cargando...</div>
+                </div>
+            </section>
+
+            <section id="view-apuestas" class="acc-view hidden">
+                <div class="acc-panel">
+                    <div class="acc-filters">
+                        <button type="button" class="chip active" data-filtro="todas">Todas</button>
+                        <button type="button" class="chip" data-filtro="pendiente">Abiertas</button>
+                        <button type="button" class="chip" data-filtro="ganada">Ganadas</button>
+                        <button type="button" class="chip" data-filtro="perdida">Perdidas</button>
+                    </div>
+                    <div id="apuestas-lista" class="acc-list">Cargando...</div>
+                </div>
+            </section>
+
+            <section id="view-transacciones" class="acc-view hidden">
+                <div class="acc-panel">
+                    <h3>Movimientos de saldo</h3>
+                    <div id="tx-lista" class="acc-list">Cargando...</div>
+                </div>
+            </section>
+
+            <section id="view-pyg" class="acc-view hidden">
+                <div class="acc-cards">
+                    <article class="acc-stat">
+                        <span>Saldo actual</span>
+                        <strong id="pyg-saldo">$0,00</strong>
+                    </article>
+                    <article class="acc-stat">
+                        <span>Riesgo (apostado)</span>
+                        <strong id="pyg-riesgo">$0,00</strong>
+                    </article>
+                    <article class="acc-stat">
+                        <span>Ganancias cobradas</span>
+                        <strong id="pyg-ganado">$0,00</strong>
+                    </article>
+                    <article class="acc-stat">
+                        <span>Resultado neto</span>
+                        <strong id="pyg-neto">$0,00</strong>
+                    </article>
+                </div>
+                <div class="acc-panel">
+                    <h3>Desglose</h3>
+                    <div id="pyg-lista" class="acc-list"></div>
+                </div>
+            </section>
+
+            <section id="view-datos" class="acc-view hidden">
+                <div class="acc-panel">
+                    <h3>Datos personales</h3>
+                    <label>Usuario</label>
+                    <input type="text" id="dat-username" maxlength="20">
+                    <label>Correo</label>
+                    <input type="email" id="dat-email" disabled>
+                    <label>Edad</label>
+                    <input type="number" id="dat-edad" min="18" max="120">
+                    <label>Estado civil</label>
+                    <select id="dat-civil">
+                        <option value="soltero">Soltero/a</option>
+                        <option value="en_pareja">En pareja</option>
+                        <option value="casado">Casado/a</option>
+                        <option value="divorciado">Divorciado/a</option>
+                        <option value="viudo">Viudo/a</option>
+                    </select>
+                    <button type="button" id="dat-guardar" class="btn-primary">Guardar cambios</button>
+                    <p id="dat-msg" class="deposit-msg"></p>
+                </div>
+            </section>
+
+            <section id="view-proteccion" class="acc-view hidden">
+                <div class="acc-panel prot-list">
+                    <div class="prot-row">
+                        <div>
+                            <span class="prot-badge">Obligatorio</span>
+                            <h4>Límites de depósito</h4>
+                            <p id="prot-lim-dep">No se configuró</p>
+                        </div>
+                        <div class="prot-edit">
+                            <input type="number" id="inp-lim-dep" placeholder="Diario $">
+                            <button type="button" data-limite="limite_deposito_diario">Guardar</button>
+                        </div>
+                    </div>
+                    <div class="prot-row">
+                        <div>
+                            <h4>Límite de pérdidas — Deportes</h4>
+                            <p id="prot-lim-dep-s">No se configuró</p>
+                        </div>
+                        <div class="prot-edit">
+                            <input type="number" id="inp-lim-sport" placeholder="Monto $">
+                            <button type="button" data-limite="limite_perdida_deportes">Guardar</button>
+                        </div>
+                    </div>
+                    <div class="prot-row">
+                        <div>
+                            <h4>Límite de pérdidas — Casino</h4>
+                            <p id="prot-lim-cas">No se configuró</p>
+                        </div>
+                        <div class="prot-edit">
+                            <input type="number" id="inp-lim-cas" placeholder="Monto $">
+                            <button type="button" data-limite="limite_perdida_casino">Guardar</button>
+                        </div>
+                    </div>
+                    <div class="prot-row">
+                        <div>
+                            <h4>Tomá un descanso</h4>
+                            <p>Te saca del casino. Mínimo 12 horas. Queda grabado en el servidor: no se puede hackear recargando ni borrando datos.</p>
+                            <p id="prot-descanso-estado">No se configuró</p>
+                        </div>
+                        <div class="prot-edit prot-edit-col">
+                            <button type="button" class="btn-danger" data-horas="12">12 horas</button>
+                            <button type="button" class="btn-danger" data-horas="24">24 horas</button>
+                            <button type="button" class="btn-danger" data-horas="168">7 días</button>
+                            <button type="button" class="btn-danger" data-horas="720">30 días</button>
+                        </div>
+                    </div>
+                    <div class="prot-row">
+                        <div>
+                            <h4>Autoexclusión</h4>
+                            <p>Bloqueo más largo. Tampoco se puede deshacer desde la app.</p>
+                            <p id="prot-auto-estado">No está activo</p>
+                        </div>
+                        <div class="prot-edit prot-edit-col">
+                            <button type="button" class="btn-danger" data-auto="24">24 horas</button>
+                            <button type="button" class="btn-danger" data-auto="168">7 días</button>
+                            <button type="button" class="btn-danger" data-auto="720">30 días</button>
+                        </div>
+                    </div>
+                    <div class="prot-row">
+                        <div>
+                            <h4>Cierre de cuenta</h4>
+                            <p id="prot-cierre-estado">No está activo</p>
+                        </div>
+                        <button type="button" id="btn-cerrar-cuenta" class="btn-danger">Cerrar cuenta</button>
+                    </div>
+                </div>
+                <aside class="acc-side-help">
+                    <div class="help-card">
+                        <h4>Tenés el control</h4>
+                        <p>Poné límites que te ayuden a mantener el control. Cada decisión que tomes acá queda en tu perfil.</p>
+                    </div>
+                    <div class="help-card">
+                        <h4>¿Necesitás una pausa?</h4>
+                        <p>Podés tomarte un tiempo fuera. El descanso de 12 horas es el mismo concepto que “TOMATE UN DESCANSO” de las casas reales, pensado para la muestra escolar.</p>
+                    </div>
+                </aside>
+            </section>
+        </main>
+
+        <aside class="acc-saldo-card">
+            <div class="saldo-card-inner">
+                <div class="saldo-row">
+                    <span>Saldo</span>
+                    <strong id="side-saldo">$0,00</strong>
+                </div>
+                <div class="saldo-row muted"><span>para apuestas</span><span id="side-apostar">$0,00</span></div>
+                <div class="saldo-row muted"><span>para retiro</span><span id="side-retiro">$0,00</span></div>
+                <div class="saldo-row muted"><span>Apuestas abiertas</span><span id="side-abiertas">0</span></div>
+                <button type="button" class="btn-mi-cuenta" id="side-depositar">DEPÓSITO</button>
+                <button type="button" class="btn-retiro-outline" id="side-retirar">RETIRO</button>
+            </div>
+        </aside>
+    </div>
+
+    <script src="shared.js"></script>
+    <script src="cuenta.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', insertarBotonAyuda);</script>
+</body>
+</html>
