@@ -261,10 +261,13 @@ async function cargarJuegos() {
         contenedor.innerHTML = ''; 
         juegos.forEach(juego => {
             contenedor.innerHTML += `
-                <a href="${juego.url_juego}" class="game-card" target="_blank" rel="noopener noreferrer">
+                <button type="button" class="game-card" data-url="${escapeHtml(juego.url_juego)}" data-nombre="${escapeHtml(juego.nombre)}">
                     <img src="${juego.url_imagen}" alt="${juego.nombre}">
                     <span>${juego.nombre.toUpperCase()}</span>
-                </a>`;
+                </button>`;
+        });
+        contenedor.querySelectorAll('.game-card').forEach((btn) => {
+            btn.addEventListener('click', () => abrirJuegoModal(btn.dataset.url, btn.dataset.nombre));
         });
     } catch (error) { contenedor.innerHTML = '<p>Error al cargar el lobby.</p>'; }
 }
@@ -278,12 +281,43 @@ async function cargarJuegosVivo() {
         contenedor.innerHTML = ''; 
         juegosVivo.forEach(juego => {
             contenedor.innerHTML += `
-                <a href="${juego.url_juego}" class="game-card" target="_blank" rel="noopener noreferrer">
+                <button type="button" class="game-card" data-url="${escapeHtml(juego.url_juego)}" data-nombre="${escapeHtml(juego.nombre)}">
                     <img src="${juego.url_imagen}" alt="${juego.nombre}">
                     <span>${juego.nombre.toUpperCase()}</span>
-                </a>`;
+                </button>`;
+        });
+        contenedor.querySelectorAll('.game-card').forEach((btn) => {
+            btn.addEventListener('click', () => abrirJuegoModal(btn.dataset.url, btn.dataset.nombre));
         });
     } catch (error) { contenedor.innerHTML = '<p>Error al cargar el lobby de juegos en vivo.</p>'; }
+}
+
+// Abre el juego dentro de un iframe superpuesto a la misma página, así el
+// script de Spotify nunca se descarga y la música sigue sonando.
+function abrirJuegoModal(url, nombre) {
+    if (!url) return;
+    document.getElementById('game-modal-title').innerText = nombre || 'Jugando';
+    document.getElementById('game-modal-iframe').src = url;
+    document.getElementById('game-modal').classList.remove('hidden');
+    document.getElementById('game-modal').setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarJuegoModal() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    document.getElementById('game-modal').classList.add('hidden');
+    document.getElementById('game-modal').setAttribute('aria-hidden', 'true');
+    document.getElementById('game-modal-iframe').src = ''; // corta el juego, no la música (vive fuera del iframe)
+    document.body.style.overflow = '';
+}
+
+function toggleFullscreenJuego() {
+    const wrap = document.getElementById('game-modal-frame-wrap');
+    if (!document.fullscreenElement) {
+        if (wrap.requestFullscreen) wrap.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
 }
 
 async function cargarSaldoYDatos(userId) {
@@ -1819,6 +1853,11 @@ function inicializarCuentaUI() {
 
     const dropSupport = document.getElementById('drop-support');
     if (dropSupport) dropSupport.addEventListener('click', toggleChat);
+
+    const btnGameClose = document.getElementById('btn-game-close');
+    const btnGameFull = document.getElementById('btn-game-fullscreen');
+    if (btnGameClose) btnGameClose.addEventListener('click', cerrarJuegoModal);
+    if (btnGameFull) btnGameFull.addEventListener('click', toggleFullscreenJuego);
 
     const openOf = document.getElementById('btn-open-ofertas');
     const closeOf = document.getElementById('btn-close-ofertas');

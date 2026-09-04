@@ -208,6 +208,19 @@
     </aside>
     <div id="spotify-backdrop" class="drawer-backdrop hidden"></div>
 
+    <div id="game-modal" class="game-modal hidden" aria-hidden="true">
+        <div class="game-modal-bar">
+            <span id="game-modal-title">Cargando juego...</span>
+            <div class="game-modal-actions">
+                <button type="button" id="btn-game-fullscreen" title="Pantalla completa">⛶</button>
+                <button type="button" id="btn-game-close" title="Cerrar">✕</button>
+            </div>
+        </div>
+        <div id="game-modal-frame-wrap">
+            <iframe id="game-modal-iframe" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+        </div>
+    </div>
+
     <section id="auth-section">
         <img src="Logo-pricipio.png" alt="Victory" class="inicio-logo">
 
