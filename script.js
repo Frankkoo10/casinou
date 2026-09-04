@@ -261,7 +261,7 @@ async function cargarJuegos() {
         contenedor.innerHTML = ''; 
         juegos.forEach(juego => {
             contenedor.innerHTML += `
-                <a href="${juego.url_juego}" class="game-card">
+                <a href="${juego.url_juego}" class="game-card" target="_blank" rel="noopener noreferrer">
                     <img src="${juego.url_imagen}" alt="${juego.nombre}">
                     <span>${juego.nombre.toUpperCase()}</span>
                 </a>`;
@@ -278,7 +278,7 @@ async function cargarJuegosVivo() {
         contenedor.innerHTML = ''; 
         juegosVivo.forEach(juego => {
             contenedor.innerHTML += `
-                <a href="${juego.url_juego}" class="game-card">
+                <a href="${juego.url_juego}" class="game-card" target="_blank" rel="noopener noreferrer">
                     <img src="${juego.url_imagen}" alt="${juego.nombre}">
                     <span>${juego.nombre.toUpperCase()}</span>
                 </a>`;
