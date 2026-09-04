@@ -43,6 +43,15 @@
                     <span id="chat-unread-badge" class="chat-badge hidden">0</span>
                 </button>
 
+                <button type="button" class="btn-icon-header" id="btn-open-ofertas" title="Novedades y promociones">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4"/><path d="M12 8v13"/><path d="M19 12v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7"/><path d="M12 8c-1.5 0-4-1-4-3a2.5 2.5 0 0 1 5 0v3z"/><path d="M12 8c1.5 0 4-1 4-3a2.5 2.5 0 0 0-5 0v3z"/></svg>
+                    <span id="ofertas-unread-badge" class="chat-badge hidden">0</span>
+                </button>
+
+                <button type="button" class="btn-icon-header" id="btn-open-spotify" title="Música">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.59 14.4a.62.62 0 01-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.62.62 0 11-.28-1.21c3.83-.88 7.12-.5 9.76 1.11.3.18.4.57.21.86zm1.22-2.72a.78.78 0 01-1.07.26c-2.7-1.66-6.82-2.14-10.02-1.17a.78.78 0 11-.45-1.49c3.65-1.1 8.19-.57 11.27 1.32.37.23.49.72.27 1.08zm.1-2.83c-3.24-1.92-8.6-2.1-11.7-1.16a.94.94 0 11-.55-1.79c3.56-1.08 9.47-.87 13.2 1.34a.94.94 0 01-.95 1.61z"/></svg>
+                </button>
+
                 <div class="profile-menu-wrapper">
                     <button type="button" class="btn-profile" id="btn-profile-toggle" aria-label="Perfil">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -59,21 +68,24 @@
                         </div>
                         <div class="dropdown-username" id="user-email">Cargando...</div>
 
-                        <div class="dropdown-saldo-box">
-                            <div class="saldo-row">
+                        <div class="dropdown-saldo-box" id="dropdown-saldo-box" data-wallet-active="real">
+                            <div class="saldo-row saldo-real-row">
                                 <span>Saldo <button type="button" class="btn-eye" id="btn-toggle-saldo" title="Ocultar saldo">👁</button></span>
                                 <strong id="drop-saldo">$0,00</strong>
                             </div>
-                            <div class="saldo-row muted">
+                            <div class="saldo-row muted saldo-real-row">
                                 <span>Disponible para apostar</span>
                                 <span id="drop-saldo-apostar">$0,00</span>
                             </div>
-                            <div class="saldo-row muted">
+                            <div class="saldo-row muted saldo-real-row">
                                 <span>Disponible para retirar</span>
                                 <span id="drop-saldo-retirar">$0,00</span>
                             </div>
                             <div class="saldo-row bono-row">
-                                <span>Saldo de bono</span>
+                                <span class="bono-label">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4"/><path d="M12 8v13"/><path d="M19 12v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7"/><path d="M12 8c-1.5 0-4-1-4-3a2.5 2.5 0 0 1 5 0v3z"/><path d="M12 8c1.5 0 4-1 4-3a2.5 2.5 0 0 0-5 0v3z"/></svg>
+                                    Saldo de bono
+                                </span>
                                 <strong id="drop-saldo-bono">$0,00</strong>
                             </div>
                             <div class="wallet-toggle">
@@ -86,7 +98,10 @@
                             <button type="button" class="btn-actualizar" id="btn-refresh-saldo">↻ Actualizar</button>
                         </div>
 
-                        <a href="cuenta.html#promociones" class="btn-mi-cuenta btn-promos-dropdown">🎁 PROMOCIONES</a>
+                        <a href="cuenta.html#promociones" class="btn-mi-cuenta btn-promos-dropdown">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4"/><path d="M12 8v13"/><path d="M19 12v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7"/><path d="M12 8c-1.5 0-4-1-4-3a2.5 2.5 0 0 1 5 0v3z"/><path d="M12 8c1.5 0 4-1 4-3a2.5 2.5 0 0 0-5 0v3z"/></svg>
+                            PROMOCIONES
+                        </a>
                         <a href="cuenta.html" class="btn-mi-cuenta">MI CUENTA</a>
                         <button type="button" id="btn-logout" class="btn-logout-icon" title="Cerrar sesión">Cerrar sesión</button>
                     </div>
@@ -133,6 +148,65 @@
         </div>
     </aside>
     <div id="deposit-backdrop" class="drawer-backdrop hidden"></div>
+
+    <aside id="ofertas-panel" class="ofertas-panel hidden" aria-hidden="true">
+        <div class="ofertas-inner">
+            <div id="ofertas-vista-lista">
+                <div class="ofertas-head">
+                    <h3>Novedades y promociones</h3>
+                    <button type="button" class="btn-close-drawer" id="btn-close-ofertas">✕</button>
+                </div>
+                <div id="ofertas-lista" class="ofertas-lista">Cargando...</div>
+            </div>
+
+            <div id="ofertas-vista-detalle" class="hidden">
+                <div class="ofertas-head">
+                    <button type="button" class="btn-back-drawer" id="btn-back-ofertas">←</button>
+                    <button type="button" class="btn-close-drawer" id="btn-close-ofertas-2">✕</button>
+                </div>
+                <img id="oferta-detalle-img" class="oferta-detalle-img" src="" alt="">
+                <p class="oferta-detalle-cat" id="oferta-detalle-cat"></p>
+                <h2 id="oferta-detalle-titulo"></h2>
+                <p id="oferta-detalle-desc" class="oferta-detalle-desc"></p>
+                <div id="oferta-detalle-pasos" class="oferta-detalle-pasos"></div>
+            </div>
+        </div>
+    </aside>
+    <div id="ofertas-backdrop" class="drawer-backdrop hidden"></div>
+
+    <aside id="spotify-panel" class="ofertas-panel hidden" aria-hidden="true">
+        <div class="ofertas-inner">
+            <div class="ofertas-head">
+                <h3>Música</h3>
+                <button type="button" class="btn-close-drawer" id="btn-close-spotify">✕</button>
+            </div>
+
+            <div id="spotify-login-box">
+                <p class="deposit-intro">Conectá tu cuenta de Spotify (necesitás Premium) para escuchar música mientras jugás.</p>
+                <button type="button" id="btn-spotify-login" class="btn-primary">Conectar con Spotify</button>
+            </div>
+
+            <div id="spotify-player-box" class="hidden">
+                <div class="spotify-now-playing">
+                    <img id="spotify-track-img" src="" alt="">
+                    <p id="spotify-track-info">Elegí una playlist para arrancar.</p>
+                </div>
+                <div class="spotify-controls">
+                    <button type="button" id="spotify-btn-prev">⏮</button>
+                    <button type="button" id="spotify-btn-playpause">▶</button>
+                    <button type="button" id="spotify-btn-next">⏭</button>
+                </div>
+                <label class="spotify-vol-label">Volumen</label>
+                <input type="range" id="spotify-volumen" min="0" max="1" step="0.05" value="0.5">
+                <label>Pegá un link de playlist, álbum o canción de Spotify</label>
+                <input type="text" id="spotify-link-input" placeholder="https://open.spotify.com/playlist/...">
+                <button type="button" id="spotify-btn-play-link" class="btn-primary">Reproducir</button>
+                <p id="spotify-msg" class="deposit-msg"></p>
+                <button type="button" id="btn-spotify-logout" class="btn-logout-icon">Desconectar Spotify</button>
+            </div>
+        </div>
+    </aside>
+    <div id="spotify-backdrop" class="drawer-backdrop hidden"></div>
 
     <section id="auth-section">
         <img src="Logo-pricipio.png" alt="Victory" class="inicio-logo">
@@ -350,6 +424,7 @@
     </div>
 
     <script src="shared.js"></script>
+    <script src="spotify.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

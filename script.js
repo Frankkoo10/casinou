@@ -335,6 +335,8 @@ function pintarSelectorBilletera() {
     document.querySelectorAll('.wallet-toggle-btn').forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.wallet === modo);
     });
+    const box = document.getElementById('dropdown-saldo-box');
+    if (box) box.dataset.walletActive = modo;
 }
 
 window.elegirBilletera = function (modo) {
@@ -1817,6 +1819,91 @@ function inicializarCuentaUI() {
 
     const dropSupport = document.getElementById('drop-support');
     if (dropSupport) dropSupport.addEventListener('click', toggleChat);
+
+    const openOf = document.getElementById('btn-open-ofertas');
+    const closeOf = document.getElementById('btn-close-ofertas');
+    const closeOf2 = document.getElementById('btn-close-ofertas-2');
+    const backOf = document.getElementById('btn-back-ofertas');
+    const backdropOf = document.getElementById('ofertas-backdrop');
+    if (openOf) openOf.addEventListener('click', abrirOfertas);
+    if (closeOf) closeOf.addEventListener('click', cerrarOfertas);
+    if (closeOf2) closeOf2.addEventListener('click', cerrarOfertas);
+    if (backOf) backOf.addEventListener('click', volverListaOfertas);
+    if (backdropOf) backdropOf.addEventListener('click', cerrarOfertas);
+}
+
+let ofertasCache = [];
+
+function abrirOfertas() {
+    document.getElementById('ofertas-panel').classList.remove('hidden');
+    document.getElementById('ofertas-backdrop').classList.remove('hidden');
+    document.getElementById('ofertas-panel').setAttribute('aria-hidden', 'false');
+    volverListaOfertas();
+    cargarOfertas();
+}
+
+function cerrarOfertas() {
+    document.getElementById('ofertas-panel').classList.add('hidden');
+    document.getElementById('ofertas-backdrop').classList.add('hidden');
+    document.getElementById('ofertas-panel').setAttribute('aria-hidden', 'true');
+}
+
+function volverListaOfertas() {
+    document.getElementById('ofertas-vista-detalle').classList.add('hidden');
+    document.getElementById('ofertas-vista-lista').classList.remove('hidden');
+}
+
+async function cargarOfertas() {
+    const box = document.getElementById('ofertas-lista');
+    try {
+        const { data, error } = await supabaseClient
+            .from('novedades')
+            .select('*')
+            .eq('activo', true)
+            .order('orden', { ascending: true });
+        if (error) throw error;
+        ofertasCache = data || [];
+        if (!ofertasCache.length) {
+            box.innerHTML = '<p class="empty-msg">Todavía no hay novedades cargadas.</p>';
+            return;
+        }
+        box.innerHTML = ofertasCache.map((o) => `
+            <button type="button" class="oferta-card" data-id="${o.id}">
+                <img src="${escapeHtml(o.imagen_url)}" alt="${escapeHtml(o.titulo || '')}">
+                <span>${escapeHtml(o.titulo || '')}</span>
+            </button>
+        `).join('');
+        box.querySelectorAll('.oferta-card').forEach((btn) => {
+            btn.addEventListener('click', () => mostrarDetalleOferta(btn.dataset.id));
+        });
+    } catch (e) {
+        box.innerHTML = '<p class="empty-msg">Corré el SQL de "novedades" para activar este panel.</p>';
+    }
+}
+
+function mostrarDetalleOferta(id) {
+    const o = ofertasCache.find((x) => String(x.id) === String(id));
+    if (!o) return;
+    document.getElementById('oferta-detalle-img').src = o.imagen_url || '';
+    document.getElementById('oferta-detalle-cat').innerText = o.categoria || 'Novedad';
+    document.getElementById('oferta-detalle-titulo').innerText = o.titulo || '';
+    document.getElementById('oferta-detalle-desc').innerText = o.descripcion || '';
+
+    const pasosBox = document.getElementById('oferta-detalle-pasos');
+    let pasos = o.pasos;
+    if (typeof pasos === 'string') {
+        try { pasos = JSON.parse(pasos); } catch (e) { pasos = null; }
+    }
+    if (Array.isArray(pasos) && pasos.length) {
+        pasosBox.innerHTML = '<h4>Cómo funciona</h4>' + pasos.map((p, i) => `
+            <div class="oferta-paso"><span class="oferta-paso-num">${i + 1}</span><p>${escapeHtml(p)}</p></div>
+        `).join('');
+    } else {
+        pasosBox.innerHTML = '';
+    }
+
+    document.getElementById('ofertas-vista-lista').classList.add('hidden');
+    document.getElementById('ofertas-vista-detalle').classList.remove('hidden');
 }
 
 function abrirDeposito() {
