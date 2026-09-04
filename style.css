@@ -1210,6 +1210,54 @@ header {
     border-radius: 5px;
     margin: 6px 0 10px;
 }
+.spotify-search-row { display: flex; gap: 6px; margin: 6px 0 10px; }
+.spotify-search-row input {
+    flex: 1;
+    padding: 10px;
+    background: #000;
+    border: 1px solid #9200a5;
+    color: #fff;
+    border-radius: 5px;
+}
+.spotify-search-row .btn-primary { width: auto; margin: 0; padding: 0 16px; }
+.spotify-resultados {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+}
+.spotify-resultado {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0b0b0b;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 6px;
+    cursor: pointer;
+    text-align: left;
+    color: #fff;
+    transition: 0.2s;
+}
+.spotify-resultado:hover { border-color: #9200a5; background: #1a1a1a; }
+.spotify-resultado img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #222; flex: 0 0 auto; }
+.spotify-resultado span { display: flex; flex-direction: column; overflow: hidden; }
+.spotify-resultado strong { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spotify-resultado small { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.spotify-link-details { margin-bottom: 10px; }
+.spotify-link-details summary { color: #aaa; font-size: 12px; cursor: pointer; margin-bottom: 8px; }
+.spotify-link-details input {
+    width: 100%;
+    padding: 10px;
+    background: #000;
+    border: 1px solid #9200a5;
+    color: #fff;
+    border-radius: 5px;
+    margin: 6px 0 8px;
+}
 
 /* Modal de juego (iframe superpuesto, mantiene viva la página del casino) */
 .game-modal {

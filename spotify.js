@@ -6,7 +6,7 @@
 
 const SPOTIFY_CONFIG = {
     // Pegá acá el Client ID que te da Spotify al crear la app
-    CLIENT_ID: '0c8a124f8e2e4045b6cede340dfcf0bf',
+    CLIENT_ID: 'PEGA_ACA_TU_CLIENT_ID',
     // Tiene que coincidir EXACTO con lo que pusiste en el dashboard de Spotify
     REDIRECT_URI: 'https://frankkoo10.github.io/casinou/',
     SCOPES: 'streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state'
@@ -239,6 +239,63 @@ function spotifyLinkAUri(link) {
     return `spotify:${m[1]}:${m[2]}`;
 }
 
+// ---------- Búsqueda ----------
+async function spotifyBuscar(query) {
+    query = (query || '').trim();
+    const box = document.getElementById('spotify-resultados');
+    if (!query) { box.innerHTML = ''; return; }
+    box.innerHTML = '<p class="empty-msg">Buscando...</p>';
+
+    const token = await spotifyObtenerToken();
+    if (!token) { box.innerHTML = '<p class="empty-msg">Conectate con Spotify primero.</p>'; return; }
+
+    try {
+        const resp = await fetch(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track,album,playlist&limit=8`,
+            { headers: { 'Authorization': 'Bearer ' + token } }
+        );
+        const data = await resp.json();
+        if (!resp.ok) { box.innerHTML = `<p class="empty-msg">${(data.error && data.error.message) || 'Error al buscar.'}</p>`; return; }
+
+        const items = [];
+        (data.tracks && data.tracks.items || []).forEach((t) => items.push({
+            uri: t.uri,
+            nombre: t.name,
+            subtitulo: t.artists.map((a) => a.name).join(', '),
+            imagen: t.album && t.album.images[2] ? t.album.images[2].url : (t.album && t.album.images[0] ? t.album.images[0].url : '')
+        }));
+        (data.albums && data.albums.items || []).forEach((a) => items.push({
+            uri: a.uri,
+            nombre: a.name,
+            subtitulo: 'Álbum · ' + a.artists.map((x) => x.name).join(', '),
+            imagen: a.images[2] ? a.images[2].url : (a.images[0] ? a.images[0].url : '')
+        }));
+        (data.playlists && data.playlists.items || []).filter(Boolean).forEach((p) => items.push({
+            uri: p.uri,
+            nombre: p.name,
+            subtitulo: 'Playlist · ' + (p.owner ? p.owner.display_name : ''),
+            imagen: p.images && p.images[0] ? p.images[0].url : ''
+        }));
+
+        if (!items.length) { box.innerHTML = '<p class="empty-msg">Sin resultados.</p>'; return; }
+
+        box.innerHTML = items.map((it) => `
+            <button type="button" class="spotify-resultado" data-uri="${it.uri}">
+                <img src="${it.imagen}" alt="">
+                <span>
+                    <strong>${escapeHtml(it.nombre)}</strong>
+                    <small>${escapeHtml(it.subtitulo)}</small>
+                </span>
+            </button>
+        `).join('');
+        box.querySelectorAll('.spotify-resultado').forEach((btn) => {
+            btn.addEventListener('click', () => spotifyReproducirLink(btn.dataset.uri));
+        });
+    } catch (e) {
+        box.innerHTML = '<p class="empty-msg">Error al buscar.</p>';
+    }
+}
+
 // ---------- UI ----------
 function spotifyActualizarUI() {
     const conectado = spotifyEstaConectado();
@@ -288,4 +345,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const val = document.getElementById('spotify-link-input').value;
         spotifyReproducirLink(val);
     });
+
+    const btnBuscar = document.getElementById('spotify-btn-buscar');
+    const inputBuscar = document.getElementById('spotify-search-input');
+    if (btnBuscar) btnBuscar.addEventListener('click', () => spotifyBuscar(inputBuscar.value));
+    if (inputBuscar) {
+        let temporizador = null;
+        inputBuscar.addEventListener('input', () => {
+            clearTimeout(temporizador);
+            temporizador = setTimeout(() => spotifyBuscar(inputBuscar.value), 500);
+        });
+        inputBuscar.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { clearTimeout(temporizador); spotifyBuscar(inputBuscar.value); }
+        });
+    }
 });
