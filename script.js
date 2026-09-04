@@ -8,6 +8,7 @@ const userEmailSpan = document.getElementById('user-email');
 
 let currentUserId = null;
 let currentSaldo = 0;
+let currentBono = 0;
 let totalApostadoGlobal = 0;
 let currentPerfil = null;
 let currentUserEmail = '';
@@ -213,6 +214,7 @@ async function crearCuenta() {
             edad,
             estado_civil: estadoCivil,
             saldo: 0,
+            bonus_balance: 0,
             total_apostado: 0,
             rol: 'jugador'
         };
@@ -231,7 +233,9 @@ async function iniciarSesion() {
     const password = document.getElementById('login-password').value;
     const errorMsg = document.getElementById('login-error');
     errorMsg.innerText = 'Iniciando sesión...';
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    const emailReal = await resolverEmailParaLogin(email);
+    if (!emailReal) { errorMsg.innerText = "Error: Correo o contraseña incorrectos."; return; }
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email: emailReal, password });
     if (error) { errorMsg.innerText = "Error: Correo o contraseña incorrectos."; } 
     else { errorMsg.innerText = ''; }
 }
@@ -290,16 +294,20 @@ async function cargarSaldoYDatos(userId) {
         if (aplicarSeparacionDeRoles(data, 'jugador')) return;
         currentPerfil = data;
         currentSaldo = data.saldo || 0;
+        currentBono = data.bonus_balance || 0;
         totalApostadoGlobal = data.total_apostado || 0;
         pintarSaldoUI();
         pintarNombreUI();
+        pintarSelectorBilletera();
         aplicarBloqueoResponsable();
     } else {
-        const { data: fallback } = await supabaseClient.from('perfiles').select('saldo, total_apostado').eq('id', userId).single();
+        const { data: fallback } = await supabaseClient.from('perfiles').select('saldo, bonus_balance, total_apostado').eq('id', userId).single();
         if (fallback) {
             currentSaldo = fallback.saldo || 0;
+            currentBono = fallback.bonus_balance || 0;
             totalApostadoGlobal = fallback.total_apostado || 0;
             pintarSaldoUI();
+            pintarSelectorBilletera();
         }
         pintarNombreUI();
     }
@@ -307,6 +315,7 @@ async function cargarSaldoYDatos(userId) {
 
 function pintarSaldoUI() {
     const txt = saldoVisible ? formatMoney(currentSaldo) : '****';
+    const txtBono = saldoVisible ? formatMoney(currentBono) : '****';
     const el = document.getElementById('user-balance');
     if (el) el.innerText = txt;
     const d1 = document.getElementById('drop-saldo');
@@ -315,6 +324,33 @@ function pintarSaldoUI() {
     if (d1) d1.innerText = txt;
     if (d2) d2.innerText = txt;
     if (d3) d3.innerText = txt;
+    const dBono = document.getElementById('drop-saldo-bono');
+    if (dBono) dBono.innerText = txtBono;
+}
+
+// Pinta el toggle "Jugás con: Real / Bono" y deja el estado visual
+// consistente con lo que hay guardado en localStorage.
+function pintarSelectorBilletera() {
+    const modo = obtenerModoBilletera();
+    document.querySelectorAll('.wallet-toggle-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.wallet === modo);
+    });
+}
+
+window.elegirBilletera = function (modo) {
+    setModoBilletera(modo);
+    pintarSelectorBilletera();
+};
+
+// Debita "monto" del saldo de BONO (uso interno al apostar con plata de bono).
+async function actualizarBonoBD(monto) {
+    if (!currentUserId) return false;
+    const nuevoBono = currentBono + monto; // monto negativo al apostar
+    if (nuevoBono < 0) return false;
+    currentBono = nuevoBono;
+    pintarSaldoUI();
+    await supabaseClient.from('perfiles').update({ bonus_balance: currentBono }).eq('id', currentUserId);
+    return true;
 }
 
 function pintarNombreUI() {
@@ -1386,12 +1422,23 @@ window.confirmarApuesta = function() {
 
     const input = document.getElementById('ticket-amount');
     const monto = parseFloat(input.value);
+    if (isNaN(monto) || monto <= 0) return;
 
-    if (isNaN(monto) || monto <= 0 || monto > currentSaldo) return;
-
-    actualizarSaldoBD(-monto);
+    // La apuesta se paga con la billetera que el jugador tenga elegida
+    // (real o bono). Si gana, el pago SIEMPRE se acredita al saldo real
+    // más adelante (eso ya lo hace actualizarSaldoBD cuando se resuelve
+    // la apuesta) — la plata de bono usada como seña no vuelve a bono.
+    const modoBilletera = obtenerModoBilletera();
+    if (modoBilletera === 'bono') {
+        if (monto > currentBono) return;
+        actualizarBonoBD(-monto);
+        registrarTransaccion(currentUserId, 'apuesta_bono', -monto, currentSaldo, 'Apuesta deportiva (bono)');
+    } else {
+        if (monto > currentSaldo) return;
+        actualizarSaldoBD(-monto);
+        registrarTransaccion(currentUserId, 'apuesta', -monto, currentSaldo, 'Apuesta deportiva');
+    }
     sumarTotalApostado(monto);
-    registrarTransaccion(currentUserId, 'apuesta', -monto, currentSaldo, 'Apuesta deportiva');
 
     let cuotaTotal = ticketSelecciones.reduce((acc, sel) => acc * sel.cuota, 1);
 

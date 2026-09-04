@@ -19,6 +19,7 @@
                 <button type="button" class="acc-nav-btn" data-view="deposito">Depósito / Retiro</button>
                 <button type="button" class="acc-nav-btn" data-view="apuestas">Historial de apuestas</button>
                 <button type="button" class="acc-nav-btn" data-view="transacciones">Transacciones</button>
+                <button type="button" class="acc-nav-btn" data-view="promociones">🎁 Promociones</button>
                 <button type="button" class="acc-nav-btn" data-view="pyg">Apuestas ganadas y perdidas</button>
                 <button type="button" class="acc-nav-btn" data-view="datos">Datos personales</button>
                 <button type="button" class="acc-nav-btn" data-view="proteccion">Protección al jugador</button>
@@ -122,6 +123,49 @@
                 <div class="acc-panel">
                     <h3>Movimientos de saldo</h3>
                     <div id="tx-lista" class="acc-list">Cargando...</div>
+                </div>
+            </section>
+
+            <section id="view-promociones" class="acc-view hidden">
+                <div class="acc-subtabs">
+                    <button type="button" class="acc-subtab active" data-subtab="promo-form-bono">Bono disponible</button>
+                    <button type="button" class="acc-subtab" data-subtab="promo-form-activas">Promociones activas</button>
+                    <button type="button" class="acc-subtab" data-subtab="promo-form-vencidas">Promociones vencidas</button>
+                </div>
+
+                <div id="promo-form-bono" class="acc-subform">
+                    <div class="acc-panel">
+                        <h3>Código de bono</h3>
+                        <p class="acc-help">Para activar el código de canje que tenés y obtener su recompensa, ingresalo en el siguiente campo.</p>
+                        <label>Código</label>
+                        <input type="text" id="promo-input-codigo" maxlength="30" placeholder="Ej: BONOCASINO" style="text-transform:uppercase;">
+                        <button type="button" id="promo-btn-canjear" class="btn-primary">OK</button>
+                        <p id="promo-msg" class="deposit-msg"></p>
+                    </div>
+                </div>
+
+                <div id="promo-form-activas" class="acc-subform hidden">
+                    <div class="acc-panel">
+                        <h3>Saldo de bono activo</h3>
+                        <p class="acc-help">Esta es la plata de bono con la que podés jugar. Elegí "Bono" en el selector de billetera del casino para apostarla; lo que ganes se acredita como saldo real.</p>
+                        <div class="acc-cards">
+                            <article class="acc-stat">
+                                <span>Saldo de bono disponible</span>
+                                <strong id="promo-bono-actual">$0,00</strong>
+                            </article>
+                        </div>
+                    </div>
+                    <div class="acc-panel">
+                        <h3>Códigos canjeados</h3>
+                        <div id="promo-lista-activas" class="acc-list">Cargando...</div>
+                    </div>
+                </div>
+
+                <div id="promo-form-vencidas" class="acc-subform hidden">
+                    <div class="acc-panel">
+                        <h3>Promociones vencidas</h3>
+                        <div id="promo-lista-vencidas" class="acc-list">Cargando...</div>
+                    </div>
                 </div>
             </section>
 
@@ -260,6 +304,14 @@
                 <div class="saldo-row muted"><span>para apuestas</span><span id="side-apostar">$0,00</span></div>
                 <div class="saldo-row muted"><span>para retiro</span><span id="side-retiro">$0,00</span></div>
                 <div class="saldo-row muted"><span>Apuestas abiertas</span><span id="side-abiertas">0</span></div>
+                <div class="saldo-row bono-row"><span>Saldo de bono</span><strong id="promo-bono-actual-side">$0,00</strong></div>
+                <div class="wallet-toggle">
+                    <span class="wallet-toggle-label">Jugás con</span>
+                    <div class="wallet-toggle-btns">
+                        <button type="button" class="wallet-toggle-btn active" data-wallet="real">Real</button>
+                        <button type="button" class="wallet-toggle-btn" data-wallet="bono">Bono</button>
+                    </div>
+                </div>
                 <button type="button" class="btn-mi-cuenta" id="side-depositar">DEPÓSITO</button>
                 <button type="button" class="btn-retiro-outline" id="side-retirar">RETIRO</button>
             </div>

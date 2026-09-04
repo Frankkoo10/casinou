@@ -72,9 +72,21 @@
                                 <span>Disponible para retirar</span>
                                 <span id="drop-saldo-retirar">$0,00</span>
                             </div>
+                            <div class="saldo-row bono-row">
+                                <span>Saldo de bono</span>
+                                <strong id="drop-saldo-bono">$0,00</strong>
+                            </div>
+                            <div class="wallet-toggle">
+                                <span class="wallet-toggle-label">Jugás con</span>
+                                <div class="wallet-toggle-btns">
+                                    <button type="button" class="wallet-toggle-btn active" data-wallet="real" onclick="elegirBilletera('real')">Real</button>
+                                    <button type="button" class="wallet-toggle-btn" data-wallet="bono" onclick="elegirBilletera('bono')">Bono</button>
+                                </div>
+                            </div>
                             <button type="button" class="btn-actualizar" id="btn-refresh-saldo">↻ Actualizar</button>
                         </div>
 
+                        <a href="cuenta.html#promociones" class="btn-mi-cuenta btn-promos-dropdown">🎁 PROMOCIONES</a>
                         <a href="cuenta.html" class="btn-mi-cuenta">MI CUENTA</a>
                         <button type="button" id="btn-logout" class="btn-logout-icon" title="Cerrar sesión">Cerrar sesión</button>
                     </div>
@@ -127,7 +139,7 @@
 
         <div id="login-box" class="auth-box">
             <h2>Iniciar Sesión</h2>
-            <input type="email" id="login-email" placeholder="Correo electrónico" required>
+            <input type="text" id="login-email" placeholder="Usuario o correo electrónico" required>
             <input type="password" id="login-password" placeholder="Contraseña" required>
             <button id="btn-login" class="btn-primary">Entrar</button>
             <p id="link-to-register" class="auth-link">¿No tienes cuenta? Regístrate aquí</p>

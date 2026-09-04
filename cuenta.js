@@ -4,6 +4,7 @@ let currentEmail = '';
 let apuestasCache = [];
 let filtroApuestas = 'todas';
 let operadoresMapCuenta = {};
+let promosCache = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.acc-nav-btn').forEach((btn) => {
@@ -21,6 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     document.getElementById('ret-enviar').addEventListener('click', solicitarRetiro);
+    document.getElementById('promo-btn-canjear').addEventListener('click', canjearPromoUI);
+    document.querySelectorAll('.wallet-toggle-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            setModoBilletera(btn.dataset.wallet);
+            pintarSelectorBilleteraCuenta();
+        });
+    });
     document.getElementById('dat-guardar').addEventListener('click', guardarDatos);
     document.querySelectorAll('.acc-subtab').forEach((btn) => {
         btn.addEventListener('click', () => mostrarSubtab(btn.dataset.subtab));
@@ -71,6 +79,7 @@ function mostrarVista(id) {
         deposito: 'Depósito / Retiro',
         apuestas: 'Historial de apuestas',
         transacciones: 'Transacciones',
+        promociones: 'Promociones',
         pyg: 'Apuestas ganadas y perdidas',
         datos: 'Datos personales',
         proteccion: 'Protección al jugador'
@@ -80,6 +89,7 @@ function mostrarVista(id) {
     if (id === 'transacciones') cargarTransacciones();
     if (id === 'deposito') { cargarOperadoresParaDeposito(); cargarSolicitudes(); }
     if (id === 'pyg') cargarPyG();
+    if (id === 'promociones') cargarPromociones();
 }
 
 function mostrarSubtab(id) {
@@ -95,11 +105,17 @@ async function refrescar() {
     const nombre = (currentPerfil && currentPerfil.username) || currentEmail;
     document.getElementById('acc-username').innerText = nombre;
     const saldo = currentPerfil ? (currentPerfil.saldo || 0) : 0;
+    const bono = currentPerfil ? (currentPerfil.bonus_balance || 0) : 0;
     ['res-saldo', 'side-saldo', 'side-apostar', 'side-retiro', 'pyg-saldo'].forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.innerText = formatMoney(saldo);
     });
+    ['promo-bono-actual', 'promo-bono-actual-side'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = formatMoney(bono);
+    });
     document.getElementById('res-apostado').innerText = formatMoney(currentPerfil ? currentPerfil.total_apostado || 0 : 0);
+    pintarSelectorBilleteraCuenta();
 
     document.getElementById('dat-username').value = (currentPerfil && currentPerfil.username) || '';
     document.getElementById('dat-email').value = currentEmail;
@@ -363,6 +379,54 @@ async function activarAuto(horas) {
         return;
     }
     await refrescar();
+}
+
+function pintarSelectorBilleteraCuenta() {
+    const modo = obtenerModoBilletera();
+    document.querySelectorAll('.wallet-toggle-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.wallet === modo);
+    });
+}
+
+async function canjearPromoUI() {
+    const msg = document.getElementById('promo-msg');
+    const input = document.getElementById('promo-input-codigo');
+    msg.innerText = 'Canjeando...';
+    msg.style.color = '#aaa';
+    const resultado = await canjearCodigoPromo(currentUserId, input.value);
+    if (!resultado.ok) {
+        msg.innerText = resultado.msg;
+        msg.style.color = '#ff4d4d';
+        return;
+    }
+    msg.innerText = resultado.msg;
+    msg.style.color = '#2ecc71';
+    input.value = '';
+    await refrescar();
+}
+
+async function cargarPromociones() {
+    promosCache = await cargarPromosCanjeadas(currentUserId);
+    const activas = promosCache.filter((p) => p.promo_codes && p.promo_codes.is_active);
+    const vencidas = promosCache.filter((p) => !p.promo_codes || !p.promo_codes.is_active);
+    renderListaPromos('promo-lista-activas', activas);
+    renderListaPromos('promo-lista-vencidas', vencidas);
+}
+
+function renderListaPromos(contenedorId, lista) {
+    const box = document.getElementById(contenedorId);
+    if (!box) return;
+    if (!lista.length) {
+        box.innerHTML = '<p class="empty-msg">No hay códigos acá.</p>';
+        return;
+    }
+    box.innerHTML = lista.map((p) => {
+        const codeInfo = p.promo_codes || {};
+        return `<div class="acc-line">
+            <span>${escapeHtml(codeInfo.code || 'Código')}<br><small>${formatFecha(p.created_at)}</small></span>
+            <strong>${formatMoney(codeInfo.reward_amount || 0)}</strong>
+        </div>`;
+    }).join('');
 }
 
 async function cerrarCuenta() {
