@@ -35,6 +35,7 @@
                 <a href="#" class="nav-item active" id="btn-nav-juegos">Casino</a>
                 <a href="#" class="nav-item" id="btn-nav-juegos-vivo">Casino En Vivo</a>
                 <a href="#" class="nav-item" id="btn-nav-deportes">Deportes</a>
+                <a href="#" class="nav-item" id="btn-nav-estadisticas">Estadísticas</a>
             </nav>
 
             <div class="user-info">
@@ -46,10 +47,6 @@
                 <button type="button" class="btn-icon-header" id="btn-open-ofertas" title="Novedades y promociones">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4"/><path d="M12 8v13"/><path d="M19 12v7a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-7"/><path d="M12 8c-1.5 0-4-1-4-3a2.5 2.5 0 0 1 5 0v3z"/><path d="M12 8c1.5 0 4-1 4-3a2.5 2.5 0 0 0-5 0v3z"/></svg>
                     <span id="ofertas-unread-badge" class="chat-badge hidden">0</span>
-                </button>
-
-                <button type="button" class="btn-icon-header" id="btn-open-spotify" title="Música">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm4.59 14.4a.62.62 0 01-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.62.62 0 11-.28-1.21c3.83-.88 7.12-.5 9.76 1.11.3.18.4.57.21.86zm1.22-2.72a.78.78 0 01-1.07.26c-2.7-1.66-6.82-2.14-10.02-1.17a.78.78 0 11-.45-1.49c3.65-1.1 8.19-.57 11.27 1.32.37.23.49.72.27 1.08zm.1-2.83c-3.24-1.92-8.6-2.1-11.7-1.16a.94.94 0 11-.55-1.79c3.56-1.08 9.47-.87 13.2 1.34a.94.94 0 01-.95 1.61z"/></svg>
                 </button>
 
                 <div class="profile-menu-wrapper">
@@ -173,52 +170,6 @@
         </div>
     </aside>
     <div id="ofertas-backdrop" class="drawer-backdrop hidden"></div>
-
-    <aside id="spotify-panel" class="ofertas-panel hidden" aria-hidden="true">
-        <div class="ofertas-inner">
-            <div class="ofertas-head">
-                <h3>Música</h3>
-                <button type="button" class="btn-close-drawer" id="btn-close-spotify">✕</button>
-            </div>
-
-            <div id="spotify-login-box">
-                <p class="deposit-intro">Conectá tu cuenta de Spotify (necesitás Premium) para escuchar música mientras jugás.</p>
-                <button type="button" id="btn-spotify-login" class="btn-primary">Conectar con Spotify</button>
-            </div>
-
-            <div id="spotify-player-box" class="hidden">
-                <div class="spotify-now-playing">
-                    <img id="spotify-track-img" src="" alt="">
-                    <p id="spotify-track-info">Elegí una playlist para arrancar.</p>
-                </div>
-                <div class="spotify-controls">
-                    <button type="button" id="spotify-btn-prev">⏮</button>
-                    <button type="button" id="spotify-btn-playpause">▶</button>
-                    <button type="button" id="spotify-btn-next">⏭</button>
-                </div>
-                <label class="spotify-vol-label">Volumen</label>
-                <input type="range" id="spotify-volumen" min="0" max="1" step="0.05" value="0.5">
-
-                <label>Buscar canciones, artistas o playlists</label>
-                <div class="spotify-search-row">
-                    <input type="text" id="spotify-search-input" placeholder="Buscar en Spotify...">
-                    <button type="button" id="spotify-btn-buscar" class="btn-primary">Buscar</button>
-                </div>
-                <div id="spotify-resultados" class="spotify-resultados"></div>
-
-                <details class="spotify-link-details">
-                    <summary>O pegar un link de Spotify</summary>
-                    <input type="text" id="spotify-link-input" placeholder="https://open.spotify.com/playlist/...">
-                    <button type="button" id="spotify-btn-play-link" class="btn-primary">Reproducir link</button>
-                </details>
-
-                <p id="spotify-msg" class="deposit-msg"></p>
-                <button type="button" id="btn-spotify-logout" class="btn-logout-icon">Desconectar Spotify</button>
-            </div>
-        </div>
-    </aside>
-    <div id="spotify-backdrop" class="drawer-backdrop hidden"></div>
-
     <div id="game-modal" class="game-modal hidden" aria-hidden="true">
         <div class="game-modal-bar">
             <span id="game-modal-title">Cargando juego...</span>
@@ -307,6 +258,7 @@
                 <a href="#" class="nav-item active" id="btn-nav-juegos">Casino</a>
                 <a href="#" class="nav-item" id="btn-nav-juegos-vivo">Casino En Vivo</a>
                 <a href="#" class="nav-item" id="btn-nav-deportes">Deportes</a>
+                <a href="#" class="nav-item" id="btn-nav-estadisticas">Estadísticas</a>
                 </div>
 
                 <div class="footer-column footer-responsable">
@@ -339,6 +291,19 @@
         <p class="instruction">Clasificación según volumen de apuestas y nivel de ludopatía.</p>
         <div id="contenedor-ranking" class="ranking-container">
             <p>Cargando ranking...</p>
+        </div>
+    </section>
+
+    <section id="estadisticas-section" class="hidden">
+        <br><br>
+        <h2>Estadísticas</h2>
+        <p class="instruction">Datos generales del simulador, separados por categoría.</p>
+        <div class="stats-grid">
+            <article class="stats-card"><h3>🎮 3 juegos más jugados</h3><div id="stats-juegos-jugados" class="stats-list"><p>Cargando...</p></div></article>
+            <article class="stats-card"><h3>💰 3 juegos con más dinero apostado</h3><div id="stats-juegos-dinero" class="stats-list"><p>Cargando...</p></div></article>
+            <article class="stats-card"><h3>⬆️ 5 usuarios que más cargaron</h3><div id="stats-usuarios-cargaron" class="stats-list"><p>Cargando...</p></div></article>
+            <article class="stats-card"><h3>🎯 5 usuarios que más apostaron</h3><div id="stats-usuarios-apostaron" class="stats-list"><p>Cargando...</p></div></article>
+            <article class="stats-card"><h3>⬇️ 5 usuarios que más retiraron</h3><div id="stats-usuarios-retiraron" class="stats-list"><p>Cargando...</p></div></article>
         </div>
     </section>
 
@@ -448,7 +413,6 @@
     </div>
 
     <script src="shared.js"></script>
-    <script src="spotify.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -3,6 +3,7 @@ const juegosSection = document.getElementById('juegos-section');
 const juegosVivoSection = document.getElementById('juegos-vivo-section');
 const deportesSection = document.getElementById('deportes-section');
 const rankingSection = document.getElementById('ranking-section');
+const estadisticasSection = document.getElementById('estadisticas-section');
 const header = document.getElementById('user-header');
 const userEmailSpan = document.getElementById('user-email');
 
@@ -60,6 +61,7 @@ window.navegarA = function(sectionId) {
     juegosVivoSection.classList.add('hidden');
     deportesSection.classList.add('hidden');
     rankingSection.classList.add('hidden');
+    estadisticasSection.classList.add('hidden');
 
     localStorage.setItem('activeSection', sectionId);
 
@@ -76,6 +78,9 @@ window.navegarA = function(sectionId) {
     } else if (sectionId === 'btn-nav-ranking') {
         rankingSection.classList.remove('hidden');
         cargarRanking();
+    } else if (sectionId === 'btn-nav-estadisticas') {
+        estadisticasSection.classList.remove('hidden');
+        cargarEstadisticas();
     }
 }
 
@@ -130,6 +135,7 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
         juegosVivoSection.classList.add('hidden');
         deportesSection.classList.add('hidden');
         rankingSection.classList.add('hidden');
+    estadisticasSection.classList.add('hidden');
         header.classList.add('hidden');
         ocultarOverlayTimeout();
         mostrarFormulario('login-box');
@@ -294,8 +300,10 @@ async function cargarJuegosVivo() {
 
 // Abre el juego dentro de un iframe superpuesto a la misma página, así el
 // script de Spotify nunca se descarga y la música sigue sonando.
-function abrirJuegoModal(url, nombre) {
-    if (!url) return;
+let gameModalHistoryOpen = false;
+let closingGameFromPopstate = false;
+
+function mostrarJuegoModal(url, nombre) {
     document.getElementById('game-modal-title').innerText = nombre || 'Jugando';
     document.getElementById('game-modal-iframe').src = url;
     document.getElementById('game-modal').classList.remove('hidden');
@@ -303,13 +311,44 @@ function abrirJuegoModal(url, nombre) {
     document.body.style.overflow = 'hidden';
 }
 
-function cerrarJuegoModal() {
-    if (document.fullscreenElement) document.exitFullscreen();
+function abrirJuegoModal(url, nombre) {
+    if (!url) return;
+    mostrarJuegoModal(url, nombre);
+    if (!gameModalHistoryOpen) {
+        history.pushState({ victoryGameModal: true }, '', '#juego');
+        gameModalHistoryOpen = true;
+    }
+    registrarEventoJuego(nombre || 'Juego', 'jugada', 0, 0);
+}
+
+function cerrarJuegoModal(fromPopState = false) {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     document.getElementById('game-modal').classList.add('hidden');
     document.getElementById('game-modal').setAttribute('aria-hidden', 'true');
-    document.getElementById('game-modal-iframe').src = ''; // corta el juego, no la música (vive fuera del iframe)
+    document.getElementById('game-modal-iframe').src = '';
     document.body.style.overflow = '';
+    if (gameModalHistoryOpen && !fromPopState && !closingGameFromPopstate) {
+        closingGameFromPopstate = true;
+        history.back();
+    }
+    gameModalHistoryOpen = false;
 }
+
+window.addEventListener('popstate', () => {
+    if (gameModalHistoryOpen) {
+        closingGameFromPopstate = true;
+        cerrarJuegoModal(true);
+        setTimeout(() => { closingGameFromPopstate = false; }, 0);
+    }
+});
+
+window.addEventListener('message', (event) => {
+    const d = event.data || {};
+    if (d.type === 'victory-bet-event') {
+        registrarEventoJuego(d.gameName || document.getElementById('game-modal-title')?.innerText || 'Juego', d.eventType || 'apuesta', Number(d.amount) || 0, Number(d.lostAmount) || 0);
+        comprobarAvisoPerdida50();
+    }
+});
 
 function toggleFullscreenJuego() {
     const wrap = document.getElementById('game-modal-frame-wrap');
@@ -2211,3 +2250,70 @@ window.toggleSeleccion = (function (original) {
         return original(partidoId, tipo, cuota, labelDesc, partidoNombres);
     };
 })(window.toggleSeleccion);
+
+
+// ======================= ESTADISTICAS =======================
+async function registrarEventoJuego(gameName, eventType = 'jugada', amount = 0, lostAmount = 0) {
+    if (!currentUserId || !gameName) return;
+    try {
+        await supabaseClient.from('estadisticas_juegos').insert([{
+            user_id: currentUserId, game_name: String(gameName).slice(0, 120), event_type: eventType, amount: Number(amount) || 0, lost_amount: Number(lostAmount) || 0
+        }]);
+    } catch (e) { console.warn('No se pudo registrar estadística de juego', e); }
+}
+
+function renderStatsList(id, rows, valueLabel, money = false) {
+    const box = document.getElementById(id);
+    if (!box) return;
+    if (!rows || !rows.length) { box.innerHTML = '<p class="empty-msg">Todavía no hay datos.</p>'; return; }
+    box.innerHTML = rows.map((r, i) => `<div class="stats-row"><span><b>${i + 1}.</b> ${escapeHtml(String(r.name || 'Sin nombre'))}</span><strong>${money ? formatMoney(Number(r.value || 0)) : Number(r.value || 0).toLocaleString('es-AR')} ${money ? '' : valueLabel}</strong></div>`).join('');
+}
+
+async function cargarEstadisticas() {
+    const ids = ['stats-juegos-jugados','stats-juegos-dinero','stats-usuarios-cargaron','stats-usuarios-apostaron','stats-usuarios-retiraron'];
+    ids.forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML='<p>Cargando...</p>'; });
+    try {
+        const [{data: juegos}, {data: apuestas}, {data: cargas}, {data: perfiles}] = await Promise.all([
+            supabaseClient.from('estadisticas_juegos').select('game_name,event_type,amount'),
+            supabaseClient.from('historial_apuestas').select('user_id,monto'),
+            supabaseClient.from('solicitudes_carga').select('user_id,monto,tipo,estado'),
+            supabaseClient.from('perfiles').select('id,username')
+        ]);
+        const names = Object.fromEntries((perfiles || []).map(p => [p.id, p.username || p.id.slice(0,8)]));
+        const gj = {}; const gd = {};
+        (juegos || []).forEach(x => { const n=x.game_name||'Juego'; if((x.event_type||'jugada')==='jugada') gj[n]=(gj[n]||0)+1; if((x.event_type||'')==='apuesta') gd[n]=(gd[n]||0)+Number(x.amount||0); });
+        renderStatsList('stats-juegos-jugados', Object.entries(gj).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value).slice(0,3), 'jugadas');
+        renderStatsList('stats-juegos-dinero', Object.entries(gd).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value).slice(0,3), '', true);
+        const sums=(tipo)=>{const o={}; (cargas||[]).filter(x=>x.tipo===tipo && ['aprobado','completado','confirmado','procesado'].includes(String(x.estado||'').toLowerCase())).forEach(x=>o[x.user_id]=(o[x.user_id]||0)+Number(x.monto||0)); return Object.entries(o).map(([id,value])=>({name:names[id]||id.slice(0,8),value})).sort((a,b)=>b.value-a.value).slice(0,5)};
+        renderStatsList('stats-usuarios-cargaron', sums('deposito'), '', true);
+        const apost={}; (apuestas||[]).forEach(x=>apost[x.user_id]=(apost[x.user_id]||0)+Number(x.monto||0));
+        renderStatsList('stats-usuarios-apostaron', Object.entries(apost).map(([id,value])=>({name:names[id]||id.slice(0,8),value})).sort((a,b)=>b.value-a.value).slice(0,5), '', true);
+        renderStatsList('stats-usuarios-retiraron', sums('retiro'), '', true);
+    } catch (e) {
+        console.error(e); ids.forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML='<p class="empty-msg">No se pudieron cargar las estadísticas. Ejecutá el SQL incluido.</p>'; });
+    }
+}
+
+async function comprobarAvisoPerdida50() {
+    if (!currentUserId) return;
+    try {
+        const [{data:cargas},{data:apuestas},{data:eventos}] = await Promise.all([
+            supabaseClient.from('solicitudes_carga').select('monto,tipo,estado').eq('user_id',currentUserId),
+            supabaseClient.from('historial_apuestas').select('monto,estado').eq('user_id',currentUserId),
+            supabaseClient.from('estadisticas_juegos').select('lost_amount').eq('user_id',currentUserId)
+        ]);
+        const cargado=(cargas||[]).filter(x=>x.tipo==='deposito' && ['aprobado','completado','confirmado','procesado'].includes(String(x.estado||'').toLowerCase())).reduce((s,x)=>s+Number(x.monto||0),0);
+        const perdidoHist=(apuestas||[]).filter(x=>x.estado==='perdida').reduce((s,x)=>s+Number(x.monto||0),0);
+        const perdidoJuegos=(eventos||[]).reduce((s,x)=>s+Number(x.lost_amount||0),0);
+        if (cargado <= 0) return;
+        const nivel=Math.floor(((perdidoHist+perdidoJuegos)/cargado)*2);
+        const key='victory_loss_warning_'+currentUserId;
+        const visto=Number(localStorage.getItem(key)||0);
+        if (nivel>visto && nivel>=1) {
+            localStorage.setItem(key,String(nivel));
+            alert('Aviso de juego responsable\n\nHas perdido aproximadamente el 50% o más del dinero que cargaste. Tomate un momento para revisar tu actividad. Podés cerrar este aviso y continuar usando el simulador.');
+        }
+    } catch(e) { console.warn('No se pudo comprobar el aviso de pérdida',e); }
+}
+
+setInterval(() => { if (currentUserId) comprobarAvisoPerdida50(); }, 30000);
