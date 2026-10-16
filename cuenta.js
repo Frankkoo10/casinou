@@ -5,7 +5,6 @@ let apuestasCache = [];
 let filtroApuestas = 'todas';
 let operadoresMapCuenta = {};
 let promosCache = [];
-
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.acc-nav-btn').forEach((btn) => {
         btn.addEventListener('click', () => mostrarVista(btn.dataset.view));
@@ -53,11 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => activarAuto(Number(btn.dataset.auto)));
     });
     document.getElementById('btn-cerrar-cuenta').addEventListener('click', cerrarCuenta);
-
     const hash = (location.hash || '').replace('#', '');
     if (hash) mostrarVista(hash);
 });
-
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if (!session) {
         window.location.href = 'https://frankkoo10.github.io/casinou/';
@@ -67,9 +64,8 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
     currentEmail = session.user.email || '';
     await refrescar();
 });
-
 function mostrarVista(id) {
-    if (id === 'retiro') id = 'deposito'; // compatibilidad con enlaces/hash viejos
+    if (id === 'retiro') id = 'deposito'; 
     document.querySelectorAll('.acc-view').forEach((v) => v.classList.add('hidden'));
     document.querySelectorAll('.acc-nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.view === id));
     const view = document.getElementById('view-' + id);
@@ -91,14 +87,12 @@ function mostrarVista(id) {
     if (id === 'pyg') cargarPyG();
     if (id === 'promociones') cargarPromociones();
 }
-
 function mostrarSubtab(id) {
     document.querySelectorAll('.acc-subform').forEach((f) => f.classList.add('hidden'));
     document.querySelectorAll('.acc-subtab').forEach((b) => b.classList.toggle('active', b.dataset.subtab === id));
     const f = document.getElementById(id);
     if (f) f.classList.remove('hidden');
 }
-
 async function refrescar() {
     currentPerfil = await cargarPerfilCompleto(currentUserId);
     if (aplicarSeparacionDeRoles(currentPerfil, 'jugador')) return;
@@ -116,17 +110,14 @@ async function refrescar() {
     });
     document.getElementById('res-apostado').innerText = formatMoney(currentPerfil ? currentPerfil.total_apostado || 0 : 0);
     pintarSelectorBilleteraCuenta();
-
     document.getElementById('dat-username').value = (currentPerfil && currentPerfil.username) || '';
     document.getElementById('dat-email').value = currentEmail;
     document.getElementById('dat-edad').value = (currentPerfil && currentPerfil.edad) || '';
     if (currentPerfil && currentPerfil.estado_civil) document.getElementById('dat-civil').value = currentPerfil.estado_civil;
-
     pintarProteccion();
     await cargarApuestas();
     await cargarReciente();
 }
-
 function pintarProteccion() {
     const p = currentPerfil || {};
     document.getElementById('prot-lim-dep').innerText = p.limite_deposito_diario
@@ -135,19 +126,15 @@ function pintarProteccion() {
         ? formatMoney(p.limite_perdida_deportes) : 'No se configuró';
     document.getElementById('prot-lim-cas').innerText = p.limite_perdida_casino
         ? formatMoney(p.limite_perdida_casino) : 'No se configuró';
-
     const t = timeoutActivo(p);
     const dEl = document.getElementById('prot-descanso-estado');
     if (t && t.tipo === 'descanso') dEl.innerText = 'Activo · resta ' + formatRestante(t.until);
     else dEl.innerText = 'No se configuró';
-
     const aEl = document.getElementById('prot-auto-estado');
     if (t && t.tipo === 'autoexclusion') aEl.innerText = 'Activo · resta ' + formatRestante(t.until);
     else aEl.innerText = 'No está activo';
-
     document.getElementById('prot-cierre-estado').innerText = p.cuenta_cerrada ? 'Cuenta cerrada' : 'No está activo';
 }
-
 async function cargarApuestas() {
     const { data } = await supabaseClient
         .from('historial_apuestas')
@@ -160,7 +147,6 @@ async function cargarApuestas() {
     document.getElementById('side-abiertas').innerText = String(abiertas);
     renderApuestas();
 }
-
 function renderApuestas() {
     const box = document.getElementById('apuestas-lista');
     let list = apuestasCache;
@@ -184,7 +170,6 @@ function renderApuestas() {
         </article>`;
     }).join('');
 }
-
 async function cargarReciente() {
     const box = document.getElementById('res-reciente');
     const top = apuestasCache.slice(0, 5);
@@ -194,7 +179,6 @@ async function cargarReciente() {
     }
     box.innerHTML = top.map((a) => `<div class="acc-line"><span>${escapeHtml(a.tipoBoleta)} · ${escapeHtml(a.estado)}</span><strong>${formatMoney(a.monto)}</strong></div>`).join('');
 }
-
 async function cargarTransacciones() {
     const box = document.getElementById('tx-lista');
     const { data, error } = await supabaseClient
@@ -213,7 +197,6 @@ async function cargarTransacciones() {
     }
     box.innerHTML = data.map((t) => `<div class="acc-line"><span>${escapeHtml(t.tipo)} · ${escapeHtml(t.descripcion || '')}<br><small>${formatFecha(t.created_at)}</small></span><strong>${formatMoney(t.monto)}</strong></div>`).join('');
 }
-
 async function cargarPyG() {
     const apostado = apuestasCache.reduce((s, a) => s + Number(a.monto || 0), 0);
     const ganado = apuestasCache.filter((a) => a.estado === 'ganada').reduce((s, a) => s + Number(a.gananciaPosible || 0), 0);
@@ -230,7 +213,6 @@ async function cargarPyG() {
         <div class="acc-line"><span>Dinero perdido en fallidas</span><strong>${formatMoney(perdido)}</strong></div>
     `;
 }
-
 async function cargarOperadoresParaDeposito() {
     const select = document.getElementById('dep-operador');
     const operadores = await cargarListaOperadores();
@@ -238,12 +220,10 @@ async function cargarOperadoresParaDeposito() {
     operadores.forEach((o) => { operadoresMapCuenta[o.id] = o.username; });
     pintarSelectOperadores(select, operadores);
 }
-
 function nombreOperador(id) {
     if (!id) return 'Sin asignar';
     return operadoresMapCuenta[id] || 'Operador';
 }
-
 async function cargarSolicitudes() {
     const box = document.getElementById('dep-lista');
     const { data, error } = await supabaseClient
@@ -265,7 +245,6 @@ async function cargarSolicitudes() {
         return `<div class="acc-line"><span>${detalle} · ${escapeHtml(s.estado)}<br><small>${formatFecha(s.created_at)}</small></span><strong>${formatMoney(s.monto)}</strong></div>`;
     }).join('');
 }
-
 async function solicitarDeposito() {
     const msg = document.getElementById('dep-msg');
     if (timeoutActivo(currentPerfil)) {
@@ -298,7 +277,6 @@ async function solicitarDeposito() {
     document.getElementById('dep-monto').value = 5000;
     cargarSolicitudes();
 }
-
 async function solicitarRetiro() {
     const msg = document.getElementById('ret-msg');
     const monto = parseFloat(document.getElementById('ret-monto').value);
@@ -323,7 +301,6 @@ async function solicitarRetiro() {
     msg.innerText = 'Pedido de retiro enviado al operador.';
     msg.style.color = '#2ecc71';
 }
-
 async function guardarDatos() {
     const msg = document.getElementById('dat-msg');
     const username = document.getElementById('dat-username').value.trim();
@@ -349,7 +326,6 @@ async function guardarDatos() {
     msg.style.color = '#2ecc71';
     await refrescar();
 }
-
 async function guardarLimite(col) {
     let inputId = 'inp-lim-dep';
     if (col === 'limite_perdida_deportes') inputId = 'inp-lim-sport';
@@ -359,7 +335,6 @@ async function guardarLimite(col) {
     await supabaseClient.from('perfiles').update({ [col]: val }).eq('id', currentUserId);
     await refrescar();
 }
-
 async function activarDescanso(horas) {
     if (!confirm('Vas a bloquear el casino por ' + horas + ' horas. No se puede deshacer desde acá.')) return;
     const { error } = await supabaseClient.rpc('activar_descanso', { horas });
@@ -370,7 +345,6 @@ async function activarDescanso(horas) {
     await refrescar();
     alert('Descanso activado. El casino queda bloqueado.');
 }
-
 async function activarAuto(horas) {
     if (!confirm('Autoexclusión por ' + horas + ' horas. No se puede deshacer desde la app.')) return;
     const { error } = await supabaseClient.rpc('activar_autoexclusion', { horas });
@@ -380,14 +354,12 @@ async function activarAuto(horas) {
     }
     await refrescar();
 }
-
 function pintarSelectorBilleteraCuenta() {
     const modo = obtenerModoBilletera();
     document.querySelectorAll('.wallet-toggle-btn').forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.wallet === modo);
     });
 }
-
 async function canjearPromoUI() {
     const msg = document.getElementById('promo-msg');
     const input = document.getElementById('promo-input-codigo');
@@ -404,7 +376,6 @@ async function canjearPromoUI() {
     input.value = '';
     await refrescar();
 }
-
 async function cargarPromociones() {
     promosCache = await cargarPromosCanjeadas(currentUserId);
     const activas = promosCache.filter((p) => p.promo_codes && p.promo_codes.is_active);
@@ -412,7 +383,6 @@ async function cargarPromociones() {
     renderListaPromos('promo-lista-activas', activas);
     renderListaPromos('promo-lista-vencidas', vencidas);
 }
-
 function renderListaPromos(contenedorId, lista) {
     const box = document.getElementById(contenedorId);
     if (!box) return;
@@ -428,7 +398,6 @@ function renderListaPromos(contenedorId, lista) {
         </div>`;
     }).join('');
 }
-
 async function cerrarCuenta() {
     if (!confirm('¿Cerrar la cuenta? No vas a poder apostar.')) return;
     const { error } = await supabaseClient.from('perfiles').update({ cuenta_cerrada: true }).eq('id', currentUserId);

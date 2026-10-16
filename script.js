@@ -3,10 +3,8 @@ const juegosSection = document.getElementById('juegos-section');
 const juegosVivoSection = document.getElementById('juegos-vivo-section');
 const deportesSection = document.getElementById('deportes-section');
 const rankingSection = document.getElementById('ranking-section');
-const estadisticasSection = document.getElementById('estadisticas-section');
 const header = document.getElementById('user-header');
 const userEmailSpan = document.getElementById('user-email');
-
 let currentUserId = null;
 let currentSaldo = 0;
 let currentBono = 0;
@@ -18,10 +16,6 @@ let chatChannel = null;
 let timeoutTimer = null;
 let bloqueoActivo = null;
 let operadoresMapScript = {};
-
-// =========================================================================
-// VARIABLES GLOBALES Y CONFIGURACIÓN UNIFICADA DE DEPORTES
-// =========================================================================
 let timerInterval = null;
 let equiposGlobales = [];
 let jugadoresGlobales = [];
@@ -31,40 +25,30 @@ let ticketSelecciones = [];
 let ligasDisponibles = [];
 let ligaActual = '';
 let deporteActual = localStorage.getItem('deporteActual') || 'Futbol'; 
-
 const globalBetTime = 90; 
 const globalPlayTime = 95; 
 const globalCycleLength = globalBetTime + globalPlayTime;
-
 const configDeportes = {
     Futbol: { playTime: 95 },     
     Basketball: { playTime: 48 }, 
     Tenis: { playTime: 80 },      
     UFC: { playTime: 25 }         
 };
-
-// NUEVA FUNCIÓN PARA MOSTRAR/OCULTAR LA CANCHA 2D
 window.toggleCancha = function(partidoId) {
     const wrapper = document.getElementById(`cancha-wrapper-${partidoId}`);
     if (wrapper) wrapper.classList.toggle('hidden');
 };
-
 let globalRoundId = -1;
 let faseApuestasAbierta = true;
-
 window.navegarA = function(sectionId) {
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     const target = document.getElementById(sectionId);
     if(target) target.classList.add('active');
-
     juegosSection.classList.add('hidden');
     juegosVivoSection.classList.add('hidden');
     deportesSection.classList.add('hidden');
     rankingSection.classList.add('hidden');
-    estadisticasSection.classList.add('hidden');
-
     localStorage.setItem('activeSection', sectionId);
-
     if (sectionId === 'btn-nav-juegos') {
         juegosSection.classList.remove('hidden');
     } else if (sectionId === 'btn-nav-juegos-vivo') {
@@ -78,27 +62,19 @@ window.navegarA = function(sectionId) {
     } else if (sectionId === 'btn-nav-ranking') {
         rankingSection.classList.remove('hidden');
         cargarRanking();
-    } else if (sectionId === 'btn-nav-estadisticas') {
-        estadisticasSection.classList.remove('hidden');
-        cargarEstadisticas();
     }
 }
-
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-login').addEventListener('click', iniciarSesion);
     document.getElementById('btn-register').addEventListener('click', crearCuenta);
     document.getElementById('btn-reset').addEventListener('click', recuperarPassword);
     document.getElementById('btn-logout').addEventListener('click', cerrarSesion);
-
     document.getElementById('link-to-register').addEventListener('click', () => mostrarFormulario('register-box'));
     document.getElementById('link-to-reset').addEventListener('click', () => mostrarFormulario('reset-box'));
     document.getElementById('link-to-login-1').addEventListener('click', () => mostrarFormulario('login-box'));
     document.getElementById('link-to-login-2').addEventListener('click', () => mostrarFormulario('login-box'));
-
     inicializarCuentaUI();
-
     const navItems = document.querySelectorAll('.nav-item');
-
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
@@ -106,17 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
 supabaseClient.auth.onAuthStateChange((event, session) => {
     if (session) {
         currentUserId = session.user.id;
         currentUserEmail = session.user.email || '';
         authSection.classList.add('hidden');
         header.classList.remove('hidden');
-
         const savedSection = localStorage.getItem('activeSection') || 'btn-nav-juegos';
         navegarA(savedSection);
-
         cargarSaldoYDatos(session.user.id);
         cargarJuegos();
         cargarJuegosVivo();
@@ -135,13 +108,11 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
         juegosVivoSection.classList.add('hidden');
         deportesSection.classList.add('hidden');
         rankingSection.classList.add('hidden');
-    estadisticasSection.classList.add('hidden');
         header.classList.add('hidden');
         ocultarOverlayTimeout();
         mostrarFormulario('login-box');
     }
 });
-
 function mostrarFormulario(idFormulario) {
     document.getElementById('login-box').classList.add('hidden');
     document.getElementById('register-box').classList.add('hidden');
@@ -149,7 +120,6 @@ function mostrarFormulario(idFormulario) {
     document.querySelectorAll('.error-msg, .success-msg').forEach(el => el.innerText = '');
     document.getElementById(idFormulario).classList.remove('hidden');
 }
-
 async function crearCuenta() {
     const username = (document.getElementById('reg-username').value || '').trim();
     const email = document.getElementById('reg-email').value.trim();
@@ -162,7 +132,6 @@ async function crearCuenta() {
     const successMsg = document.getElementById('reg-success');
     errorMsg.innerText = '';
     successMsg.innerText = '';
-
     if (!username || username.length < 3) {
         errorMsg.innerText = 'El nombre de usuario debe tener al menos 3 caracteres.';
         return;
@@ -199,7 +168,6 @@ async function crearCuenta() {
         errorMsg.innerText = 'Tenés que confirmar que sos mayor de 18 y jugás con responsabilidad.';
         return;
     }
-
     successMsg.innerText = 'Creando cuenta...';
     const { data, error } = await supabaseClient.auth.signUp({
         email,
@@ -211,7 +179,6 @@ async function crearCuenta() {
         successMsg.innerText = '';
         return;
     }
-
     const uid = data.user && data.user.id;
     if (uid) {
         const payload = {
@@ -233,7 +200,6 @@ async function crearCuenta() {
     }
     successMsg.innerText = '¡Cuenta creada! Verificá tu correo o iniciá sesión.';
 }
-
 async function iniciarSesion() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
@@ -245,9 +211,7 @@ async function iniciarSesion() {
     if (error) { errorMsg.innerText = "Error: Correo o contraseña incorrectos."; } 
     else { errorMsg.innerText = ''; }
 }
-
 async function cerrarSesion() { await supabaseClient.auth.signOut(); }
-
 async function recuperarPassword() {
     const email = document.getElementById('reset-email').value;
     const errorMsg = document.getElementById('reset-error');
@@ -257,7 +221,6 @@ async function recuperarPassword() {
     if (error) { errorMsg.innerText = "Error: " + error.message; } 
     else { successMsg.innerText = 'Te hemos enviado un correo con el enlace.'; }
 }
-
 async function cargarJuegos() {
     const contenedor = document.getElementById('contenedor-juegos');
     contenedor.innerHTML = '<p>Cargando juegos...</p>';
@@ -277,7 +240,6 @@ async function cargarJuegos() {
         });
     } catch (error) { contenedor.innerHTML = '<p>Error al cargar el lobby.</p>'; }
 }
-
 async function cargarJuegosVivo() {
     const contenedor = document.getElementById('contenedor-juegos-vivo');
     contenedor.innerHTML = '<p>Cargando juegos en vivo...</p>';
@@ -297,12 +259,8 @@ async function cargarJuegosVivo() {
         });
     } catch (error) { contenedor.innerHTML = '<p>Error al cargar el lobby de juegos en vivo.</p>'; }
 }
-
-// Abre el juego dentro de un iframe superpuesto a la misma página, así el
-// script de Spotify nunca se descarga y la música sigue sonando.
 let gameModalHistoryOpen = false;
 let closingGameFromPopstate = false;
-
 function mostrarJuegoModal(url, nombre) {
     document.getElementById('game-modal-title').innerText = nombre || 'Jugando';
     document.getElementById('game-modal-iframe').src = url;
@@ -310,7 +268,6 @@ function mostrarJuegoModal(url, nombre) {
     document.getElementById('game-modal').setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
 }
-
 function abrirJuegoModal(url, nombre) {
     if (!url) return;
     mostrarJuegoModal(url, nombre);
@@ -318,9 +275,7 @@ function abrirJuegoModal(url, nombre) {
         history.pushState({ victoryGameModal: true }, '', '#juego');
         gameModalHistoryOpen = true;
     }
-    registrarEventoJuego(nombre || 'Juego', 'jugada', 0, 0);
 }
-
 function cerrarJuegoModal(fromPopState = false) {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     document.getElementById('game-modal').classList.add('hidden');
@@ -333,7 +288,6 @@ function cerrarJuegoModal(fromPopState = false) {
     }
     gameModalHistoryOpen = false;
 }
-
 window.addEventListener('popstate', () => {
     if (gameModalHistoryOpen) {
         closingGameFromPopstate = true;
@@ -341,15 +295,12 @@ window.addEventListener('popstate', () => {
         setTimeout(() => { closingGameFromPopstate = false; }, 0);
     }
 });
-
 window.addEventListener('message', (event) => {
     const d = event.data || {};
     if (d.type === 'victory-bet-event') {
-        registrarEventoJuego(d.gameName || document.getElementById('game-modal-title')?.innerText || 'Juego', d.eventType || 'apuesta', Number(d.amount) || 0, Number(d.lostAmount) || 0);
         comprobarAvisoPerdida50();
     }
 });
-
 function toggleFullscreenJuego() {
     const wrap = document.getElementById('game-modal-frame-wrap');
     if (!document.fullscreenElement) {
@@ -358,7 +309,6 @@ function toggleFullscreenJuego() {
         document.exitFullscreen();
     }
 }
-
 async function cargarSaldoYDatos(userId) {
     const balanceSpan = document.getElementById('user-balance');
     balanceSpan.innerText = 'Cargando...';
@@ -385,7 +335,6 @@ async function cargarSaldoYDatos(userId) {
         pintarNombreUI();
     }
 }
-
 function pintarSaldoUI() {
     const txt = saldoVisible ? formatMoney(currentSaldo) : '****';
     const txtBono = saldoVisible ? formatMoney(currentBono) : '****';
@@ -400,9 +349,6 @@ function pintarSaldoUI() {
     const dBono = document.getElementById('drop-saldo-bono');
     if (dBono) dBono.innerText = txtBono;
 }
-
-// Pinta el toggle "Jugás con: Real / Bono" y deja el estado visual
-// consistente con lo que hay guardado en localStorage.
 function pintarSelectorBilletera() {
     const modo = obtenerModoBilletera();
     document.querySelectorAll('.wallet-toggle-btn').forEach((btn) => {
@@ -411,41 +357,34 @@ function pintarSelectorBilletera() {
     const box = document.getElementById('dropdown-saldo-box');
     if (box) box.dataset.walletActive = modo;
 }
-
 window.elegirBilletera = function (modo) {
     setModoBilletera(modo);
     pintarSelectorBilletera();
 };
-
-// Debita "monto" del saldo de BONO (uso interno al apostar con plata de bono).
 async function actualizarBonoBD(monto) {
     if (!currentUserId) return false;
-    const nuevoBono = currentBono + monto; // monto negativo al apostar
+    const nuevoBono = currentBono + monto; 
     if (nuevoBono < 0) return false;
     currentBono = nuevoBono;
     pintarSaldoUI();
     await supabaseClient.from('perfiles').update({ bonus_balance: currentBono }).eq('id', currentUserId);
     return true;
 }
-
 function pintarNombreUI() {
     const name = (currentPerfil && currentPerfil.username) || currentUserEmail || 'Jugador';
     if (userEmailSpan) userEmailSpan.innerText = name;
 }
-
 async function actualizarSaldoBD(monto) {
     if (!currentUserId) return;
     currentSaldo += monto;
     pintarSaldoUI();
     await supabaseClient.from('perfiles').update({ saldo: currentSaldo }).eq('id', currentUserId);
 }
-
 async function sumarTotalApostado(monto) {
     if (!currentUserId) return;
     totalApostadoGlobal += monto;
     await supabaseClient.from('perfiles').update({ total_apostado: totalApostadoGlobal }).eq('id', currentUserId);
 }
-
 async function cargarRanking() {
     const contenedor = document.getElementById('contenedor-ranking');
     contenedor.innerHTML = '<p>Cargando ranking...</p>';
@@ -462,15 +401,12 @@ async function cargarRanking() {
             data = retry.data;
             error = retry.error;
         }
-            
         if (error) throw error;
         if (!data || data.length === 0) {
             contenedor.innerHTML = '<p>No hay datos suficientes para el ranking.</p>';
             return;
         }
-
         let html = '<table class="ranking-table"><tr><th>Top</th><th>Jugador</th><th>Volumen Apostado</th><th>Nivel Ludopatía</th></tr>';
-        
         data.forEach((perfil, index) => {
             let idCorto = perfil.username || (perfil.id.substring(0, 8) + '***');
             let medalla = index === 0 ? '<img src="imagen_oro.png" class="custom-emoji" alt="Oro">' : index === 1 ? '<img src="imagen_plata.png" class="custom-emoji" alt="Plata">' : index === 2 ? '<img src="imagen_bronce.png" class="custom-emoji" alt="Bronce">' : `${index + 1}º`;
@@ -478,9 +414,7 @@ async function cargarRanking() {
             let saldoActual = perfil.saldo || 0;
             let porcentajeLudopatia = 0;
             if (apostado > 0) { porcentajeLudopatia = ((apostado / (apostado + saldoActual)) * 100).toFixed(1); }
-
             let colorLudo = porcentajeLudopatia > 80 ? 'color: #ff4d4d;' : (porcentajeLudopatia > 50 ? 'color: #f39c12;' : 'color: #2ecc71;');
-
             html += `<tr>
                 <td>${medalla}</td>
                 <td>${escapeHtml(String(idCorto))}</td>
@@ -492,17 +426,14 @@ async function cargarRanking() {
         contenedor.innerHTML = html;
     } catch(e) { contenedor.innerHTML = '<p>Error al cargar el ranking.</p>'; }
 }
-
 async function cargarHistorialDesdeBD() {
     apuestasUsuario = [];
     const contenedor = document.getElementById('history-items');
     contenedor.innerHTML = '<p class="empty-msg">Cargando...</p>';
-    
     const { data, error } = await supabaseClient.from('historial_apuestas')
         .select('*')
         .eq('user_id', currentUserId)
         .order('id', { ascending: true }); 
-
     if (data) { 
         apuestasUsuario = data.map(apuesta => {
             if (typeof apuesta.selecciones === 'string') {
@@ -511,23 +442,19 @@ async function cargarHistorialDesdeBD() {
             return apuesta;
         });
     }
-
     if (equiposGlobales.length === 0) {
         const { data: equipos } = await supabaseClient.from('equipos').select('*');
         if (equipos) equiposGlobales = equipos;
         const { data: jug } = await supabaseClient.from('jugadores').select('*');
         if (jug) jugadoresGlobales = jug;
     }
-
     resolverApuestasOffline(); 
     renderizarHistorial();
 }
-
 async function guardarApuestaBD(apuestaTemp) {
     apuestaTemp.id = Date.now(); 
     apuestasUsuario.push(apuestaTemp);
     renderizarHistorial();
-
     const { data, error } = await supabaseClient.from('historial_apuestas')
         .insert([{
             user_id: currentUserId,
@@ -539,7 +466,6 @@ async function guardarApuestaBD(apuestaTemp) {
             estado: apuestaTemp.estado,
             resuelta: apuestaTemp.resuelta
         }]).select().single();
-
     if (data) {
         const index = apuestasUsuario.findIndex(a => a.id === apuestaTemp.id);
         if(index !== -1) { 
@@ -550,13 +476,11 @@ async function guardarApuestaBD(apuestaTemp) {
         }
     }
 }
-
 async function actualizarApuestaBD(apuestaDbId, estado, resuelta) {
     await supabaseClient.from('historial_apuestas')
         .update({ estado: estado, resuelta: resuelta })
         .eq('id', apuestaDbId);
 }
-
 window.borrarHistorialBD = async function() {
     if(!confirm("¿Estás seguro de borrar todo tu historial de apuestas?")) return;
     document.getElementById('history-items').innerHTML = '<p class="empty-msg">Borrando...</p>';
@@ -564,33 +488,24 @@ window.borrarHistorialBD = async function() {
     apuestasUsuario = [];
     renderizarHistorial();
 }
-
-// =========================================================================
-// SISTEMA AUTOMATIZADO MULTI-RELOJ Y GENERADORES POR DEPORTE
-// =========================================================================
-
 async function inicializarDeportes() {
     if (equiposGlobales.length === 0) {
         const contenedor = document.getElementById('contenedor-partidos');
-        contenedor.innerHTML = '<p>Buscando ligas, competidores y estadísticas en la base de datos...</p>';
+        contenedor.innerHTML = '<p>Buscando ligas y competidores en la base de datos...</p>';
         try {
             const { data: equipos, error } = await supabaseClient.from('equipos').select('*');
             if (error) throw error;
             if (!equipos || equipos.length < 2) return;
             equiposGlobales = equipos;
-
             actualizarLigasPorDeporte();
-
             try {
                 const { data: jug, error: errJug } = await supabaseClient.from('jugadores').select('*');
                 if (!errJug && jug) jugadoresGlobales = jug;
             } catch(e) { console.log("Tabla jugadores aún no está lista."); }
-
         } catch (error) { contenedor.innerHTML = '<p style="color:#ff4d4d;">Error de base de datos.</p>'; return; }
     } else {
         actualizarLigasPorDeporte();
     }
-    
     if (!timerInterval) {
         globalRoundId = -1;
         cicloDeportes(); 
@@ -598,28 +513,22 @@ async function inicializarDeportes() {
     }
     renderizarHistorial();
 }
-
 function detenerDeportes() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 }
-
 window.cambiarDeporte = function(nuevoDeporte) {
     deporteActual = nuevoDeporte;
     localStorage.setItem('deporteActual', nuevoDeporte);
     document.querySelectorAll('.btn-sport').forEach(btn => btn.classList.remove('active'));
-    
     const btnActivar = document.getElementById('btn-sport-' + nuevoDeporte.toLowerCase());
     if(btnActivar) btnActivar.classList.add('active');
-    
     actualizarLigasPorDeporte();
     cicloDeportes();
     renderizarPartidos();
 }
-
 function actualizarLigasPorDeporte() {
     let equiposDelDeporte = equiposGlobales.filter(e => (e.deporte || 'Futbol') === deporteActual);
     ligasDisponibles = [...new Set(equiposDelDeporte.map(e => e.liga || 'General'))];
-    
     let savedLiga = localStorage.getItem('ligaActual');
     if (savedLiga && ligasDisponibles.includes(savedLiga)) {
         ligaActual = savedLiga;
@@ -628,15 +537,12 @@ function actualizarLigasPorDeporte() {
     } else if (ligasDisponibles.length === 0) {
         ligaActual = '';
     }
-    
     renderizarSelectorLigas();
 }
-
 function renderizarSelectorLigas() {
     const contenedor = document.getElementById('league-selector');
     contenedor.innerHTML = '';
     if (ligasDisponibles.length === 0) return;
-    
     ligasDisponibles.forEach(liga => {
         const btn = document.createElement('button');
         btn.className = `btn-league ${liga === ligaActual ? 'active' : ''}`;
@@ -645,19 +551,16 @@ function renderizarSelectorLigas() {
         contenedor.appendChild(btn);
     });
 }
-
 function cambiarLiga(nuevaLiga) {
     ligaActual = nuevaLiga;
     localStorage.setItem('ligaActual', nuevaLiga); 
     renderizarSelectorLigas();
     renderizarPartidos();
 }
-
 function seededRandom(seed) {
     let x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
 }
-
 function mezclarArrayDeterminista(array, seed) {
     let arr = [...array];
     let currentSeed = seed;
@@ -667,7 +570,6 @@ function mezclarArrayDeterminista(array, seed) {
     }
     return arr;
 }
-
 function seleccionarGoleador(equipo, seedObj, esGol = false) {
     let jugadoresEquipo = jugadoresGlobales.filter(j => 
         j.equipo_id == equipo.id || 
@@ -676,14 +578,10 @@ function seleccionarGoleador(equipo, seedObj, esGol = false) {
         j.equipo_nombre == equipo.nombre ||
         (j.equipo_id && String(j.equipo_id).toLowerCase() === String(equipo.nombre).toLowerCase())
     );
-    
     if (jugadoresEquipo.length === 0) return "Jugador de " + equipo.nombre;
-
     let pool = jugadoresEquipo; 
-
     if (esGol) {
         let usanPorcentaje = pool.some(j => j.porcentaje_gol !== undefined || j.prob_gol !== undefined || j.probabilidad !== undefined);
-        
         if (usanPorcentaje) {
             let probTotal = 0;
             pool.forEach(j => {
@@ -691,7 +589,6 @@ function seleccionarGoleador(equipo, seedObj, esGol = false) {
                 j._tempProb = isNaN(val) ? 1 : val;
                 probTotal += j._tempProb;
             });
-            
             let r = seededRandom(seedObj.val++) * probTotal;
             let acumulado = 0;
             for (let j of pool) {
@@ -708,12 +605,10 @@ function seleccionarGoleador(equipo, seedObj, esGol = false) {
             }
         }
     }
-
     let rSeleccion = seededRandom(seedObj.val++);
     let seleccionado = pool[Math.floor(rSeleccion * pool.length)];
     return seleccionado ? seleccionado.nombre : ("Jugador de " + equipo.nombre);
 }
-
 function calcularCuotasBase(local, visitante) {
     let fuerzaL = (local.estadistica_ataque || 10) + (local.estadistica_defensa || 10);
     let fuerzaV = (visitante.estadistica_ataque || 10) + (visitante.estadistica_defensa || 10);
@@ -722,69 +617,55 @@ function calcularCuotasBase(local, visitante) {
     let probV = (fuerzaV / total) * 0.95;
     return { probL, probV };
 }
-
 function precalcularFutbol(partido, seedObj) {
     let { probL, probV } = calcularCuotasBase(partido.local, partido.visitante);
     let probE = 1 - (probL * 0.75 + probV * 0.75);
-    
     partido.cuotas = {
         L: (1 / (probL * 0.75 * 1.15)).toFixed(2), E: (1 / (probE * 1.15)).toFixed(2), V: (1 / (probV * 0.75 * 1.15)).toFixed(2),
         LE: (1 / ((probL*0.75 + probE) * 1.15)).toFixed(2), VE: (1 / ((probV*0.75 + probE) * 1.15)).toFixed(2),
         Mas25: (1.85).toFixed(2), Menos25: (1.95).toFixed(2)
     };
-
     partido.tiempoExtra = Math.floor(seededRandom(seedObj.val++) * 5) + 1; 
     let maxMinutos = 90 + partido.tiempoExtra;
-
     partido.golesFinalesL = seededRandom(seedObj.val++) < probL ? Math.floor(seededRandom(seedObj.val++) * 3) + 1 : 0;
     partido.golesFinalesV = seededRandom(seedObj.val++) < probV ? Math.floor(seededRandom(seedObj.val++) * 3) + 1 : 0;
-
     partido.eventos = [];
-    
     for(let i=0; i<partido.golesFinalesL; i++) {
         let minutoGol = Math.floor(seededRandom(seedObj.val++) * maxMinutos) + 1;
         let jugador = seleccionarGoleador(partido.local, seedObj, true); 
-        
         let minutoAtaque = Math.max(1, minutoGol - 1);
         if (!partido.eventos.some(e => e.minuto === minutoAtaque)) {
             partido.eventos.push({ equipo: 'L', tipo: 'ATAQUE', minuto: minutoAtaque, jugador: jugador, texto: `¡ATAQUE PELIGROSO!`, x: 75, y: 50, procesado: false });
         }
         partido.eventos.push({ equipo: 'L', tipo: 'GOL', minuto: minutoGol, jugador: jugador, texto: `¡GOL!`, x: 92, y: 50, procesado: false });
-
         let minutoSaque = Math.min(maxMinutos, minutoGol + 1);
         if (!partido.eventos.some(e => e.minuto === minutoSaque)) {
             partido.eventos.push({ equipo: 'V', tipo: 'POSESION', minuto: minutoSaque, jugador: '', texto: 'Saca del medio', x: 50, y: 50, procesado: false });
         }
     }
-
     for(let i=0; i<partido.golesFinalesV; i++) {
         let minutoGol = Math.floor(seededRandom(seedObj.val++) * maxMinutos) + 1;
         let jugador = seleccionarGoleador(partido.visitante, seedObj, true); 
-        
         let minutoAtaque = Math.max(1, minutoGol - 1);
         if (!partido.eventos.some(e => e.minuto === minutoAtaque)) {
             partido.eventos.push({ equipo: 'V', tipo: 'ATAQUE', minuto: minutoAtaque, jugador: jugador, texto: `¡ATAQUE PELIGROSO!`, x: 25, y: 50, procesado: false });
         }
         partido.eventos.push({ equipo: 'V', tipo: 'GOL', minuto: minutoGol, jugador: jugador, texto: `¡GOL!`, x: 8, y: 50, procesado: false });
-
         let minutoSaque = Math.min(maxMinutos, minutoGol + 1);
         if (!partido.eventos.some(e => e.minuto === minutoSaque)) {
             partido.eventos.push({ equipo: 'L', tipo: 'POSESION', minuto: minutoSaque, jugador: '', texto: 'Saca del medio', x: 50, y: 50, procesado: false });
         }
     }
-
     let numNarrativas = Math.floor(seededRandom(seedObj.val++) * 20) + 20; 
     for(let i=0; i<numNarrativas; i++) {
         let eq = seededRandom(seedObj.val++) < 0.5 ? 'L' : 'V';
         let equipoActivo = eq === 'L' ? partido.local : partido.visitante; 
         let jugadorAccion = seleccionarGoleador(equipoActivo, seedObj, false); 
-        
         let tipoRandom = seededRandom(seedObj.val++);
         let tipoEv = 'JUGADA';
         let txt = '';
         let posX = 50;
         let posY = Math.floor(seededRandom(seedObj.val++) * 80) + 10;
-        
         if (tipoRandom < 0.20) {
             txt = `Pelota dividida`; posX = Math.floor(seededRandom(seedObj.val++) * 40) + 30; tipoEv = 'POSESION';
         } else if (tipoRandom < 0.45) {
@@ -796,7 +677,6 @@ function precalcularFutbol(partido, seedObj) {
         } else {
             txt = `Falta en el mediocampo`; posX = Math.floor(seededRandom(seedObj.val++) * 40) + 30; tipoEv = 'FALTA';
         }
-
         let rndMin = Math.floor(seededRandom(seedObj.val++) * maxMinutos) + 1;
         if (!partido.eventos.some(e => e.minuto === rndMin)) {
             partido.eventos.push({ equipo: eq, tipo: tipoEv, texto: txt, minuto: rndMin, jugador: jugadorAccion, x: posX, y: posY, procesado: false });
@@ -804,19 +684,15 @@ function precalcularFutbol(partido, seedObj) {
     }
     partido.eventos.sort((a,b) => a.minuto - b.minuto);
 }
-
 function precalcularBasketball(partido, seedObj) {
     let { probL, probV } = calcularCuotasBase(partido.local, partido.visitante);
-    
     partido.cuotas = {
         L: (1 / (probL * 1.10)).toFixed(2),
         V: (1 / (probV * 1.10)).toFixed(2)
     };
-
     partido.tiempoExtra = 0;
     partido.eventos = [];
     let ptsL = 0; let ptsV = 0;
-
     for(let m=1; m<=48; m++) {
         let posesionesL = Math.floor(seededRandom(seedObj.val++) * 3) + 1; 
         for(let p=0; p<posesionesL; p++) {
@@ -827,7 +703,6 @@ function precalcularBasketball(partido, seedObj) {
                 partido.eventos.push({ equipo: 'L', minuto: m, pts: totalPts, jugador: seleccionarGoleador(partido.local, seedObj, true), procesado: false }); 
             }
         }
-        
         let posesionesV = Math.floor(seededRandom(seedObj.val++) * 3) + 1;
         for(let p=0; p<posesionesV; p++) {
             if(seededRandom(seedObj.val++) < probV + 0.05) {
@@ -838,33 +713,24 @@ function precalcularBasketball(partido, seedObj) {
             }
         }
     }
-    
     if (ptsL === ptsV) ptsL += 2;
-
     partido.golesFinalesL = ptsL;
     partido.golesFinalesV = ptsV;
     partido.resultado = { dif: ptsL - ptsV, total: ptsL + ptsV };
 }
-
 function precalcularUFC(partido, seedObj) {
     let { probL, probV } = calcularCuotasBase(partido.local, partido.visitante);
-    
     partido.cuotas = {
         L: (1 / (probL * 1.10)).toFixed(2),
         V: (1 / (probV * 1.10)).toFixed(2)
     };
-
     partido.tiempoExtra = 0;
     partido.eventos = [];
-
     let winR = seededRandom(seedObj.val++);
     let winner = winR < probL ? 'L' : 'V';
-    
     let methodR = seededRandom(seedObj.val++);
     let method = methodR < 0.4 ? 'KO' : (methodR < 0.65 ? 'SUB' : 'DEC');
-
     let endMinute = method !== 'DEC' ? Math.floor(seededRandom(seedObj.val++) * 24) + 1 : 25;
-
     const ufcComments = [
         "conecta un gran upper",
         "hace tambalear a su oponente",
@@ -875,7 +741,6 @@ function precalcularUFC(partido, seedObj) {
         "busca una llave de sumisión",
         "conecta un rodillazo al cuerpo"
     ];
-
     for(let m=1; m<endMinute; m++) {
         if(seededRandom(seedObj.val++) < 0.35) {
             let eq = seededRandom(seedObj.val++) < 0.5 ? 'L' : 'V';
@@ -883,18 +748,14 @@ function precalcularUFC(partido, seedObj) {
             partido.eventos.push({ equipo: eq, minuto: m, tipo: accion, procesado: false });
         }
     }
-
     let winText = method === 'KO' ? 'Nocaut (KO)' : (method === 'SUB' ? 'Sumisión' : 'Decisión');
     partido.eventos.push({ equipo: winner, minuto: endMinute, tipo: `¡GANA POR ${winText.toUpperCase()}!`, procesado: false, final: true });
-
     partido.resultado = { ganador: winner, metodo: method };
     partido.golesFinalesL = winner === 'L' ? 1 : 0; 
     partido.golesFinalesV = winner === 'V' ? 1 : 0;
 }
-
 function precalcularTenis(partido, seedObj) {
     let { probL, probV } = calcularCuotasBase(partido.local, partido.visitante);
-    
     partido.cuotas = {
         L: (1 / (probL * 1.10)).toFixed(2),
         V: (1 / (probV * 1.10)).toFixed(2),
@@ -903,29 +764,22 @@ function precalcularTenis(partido, seedObj) {
         Mas35: 1.85,
         Menos35: 1.85
     };
-
     partido.tiempoExtra = 0;
     partido.eventos = [];
-
     let setsL = 0; let setsV = 0;
     let totalGames = 0;
     let serverL = seededRandom(seedObj.val++) < 0.5; 
     let gameEventsTemp = [];
-
     while (setsL < 3 && setsV < 3) {
         let gamesL = 0;
         let gamesV = 0;
-
         while (true) {
             let probLWinGame = serverL ? probL + 0.15 : probL - 0.15;
             probLWinGame = Math.max(0.15, Math.min(0.85, probLWinGame));
-            
             let winL = seededRandom(seedObj.val++) < probLWinGame;
             if (winL) gamesL++; else gamesV++;
             totalGames++;
-            
             serverL = !serverL; 
-
             if ((gamesL >= 6 && gamesL - gamesV >= 2) || (gamesV >= 6 && gamesV - gamesL >= 2) || gamesL === 7 || gamesV === 7) {
                 if (gamesL > gamesV) setsL++; else setsV++;
                 gameEventsTemp.push({ 
@@ -945,18 +799,14 @@ function precalcularTenis(partido, seedObj) {
             }
         }
     }
-
     partido.resultado = { setsL, setsV, totalGames };
-    
     let interval = configDeportes.Tenis.playTime / gameEventsTemp.length;
     let currTime = 0;
-
     for(let i=0; i<gameEventsTemp.length; i++) {
         currTime += interval;
         let m = Math.floor(currTime);
         if(m > configDeportes.Tenis.playTime) m = configDeportes.Tenis.playTime;
         if(m < 1) m = 1;
-        
         partido.eventos.push({
             equipo: gameEventsTemp[i].equipo,
             minuto: m,
@@ -967,35 +817,27 @@ function precalcularTenis(partido, seedObj) {
             procesado: false
         });
     }
-
     partido.eventos.push({ equipo: 'E', minuto: configDeportes.Tenis.playTime, text: `FINAL: ${setsL} Sets a ${setsV}`, procesado: false, final: true });
-    
     partido.golesFinalesL = setsL;
     partido.golesFinalesV = setsV;
 }
-
 function iniciarRondaSincronizadaPorDeporte(deporte, roundId) {
     let conf = configDeportes[deporte];
     let seedObj = { val: (roundId * 1000) + deporte.length };
-
     partidosActuales = partidosActuales.filter(p => p.deporte !== deporte);
-    
     let equiposDelDeporte = equiposGlobales.filter(e => (e.deporte || 'Futbol') === deporte);
     if(equiposDelDeporte.length < 2) return;
-
     let equiposPorLiga = {};
     equiposDelDeporte.forEach(eq => {
         let l = eq.liga || 'General';
         if(!equiposPorLiga[l]) equiposPorLiga[l] = [];
         equiposPorLiga[l].push(eq);
     });
-
     for (let liga in equiposPorLiga) {
         let mezclados = mezclarArrayDeterminista(equiposPorLiga[liga], seedObj.val++);
         for (let i = 0; i < mezclados.length - 1; i += 2) {
             let local = mezclados[i];
             let visitante = mezclados[i+1];
-            
             let nuevoPartido = {
                 id: `match_${local.id}_${visitante.id}_${deporte}_${roundId}`,
                 deporte: deporte,
@@ -1004,38 +846,29 @@ function iniciarRondaSincronizadaPorDeporte(deporte, roundId) {
                 golesL: 0, golesV: 0, finalizado: false, finalizadoGlobal: false,
                 eventos: [], eventosUI: []
             };
-
             if (deporte === 'Futbol') precalcularFutbol(nuevoPartido, seedObj);
             else if (deporte === 'Basketball') precalcularBasketball(nuevoPartido, seedObj);
             else if (deporte === 'UFC') precalcularUFC(nuevoPartido, seedObj);
             else if (deporte === 'Tenis') precalcularTenis(nuevoPartido, seedObj);
-
             partidosActuales.push(nuevoPartido);
         }
     }
-    
     if (deporte === deporteActual) renderizarPartidos();
 }
-
 function cicloDeportes() {
     const now = Math.floor(Date.now() / 1000); 
-    
     let roundId = Math.floor(now / globalCycleLength);
     let secActuales = now % globalCycleLength;
-    
     faseApuestasAbierta = secActuales < globalBetTime;
     let tiempoFase = faseApuestasAbierta ? (globalBetTime - secActuales) : (globalCycleLength - secActuales);
-
     const timerDisplay = document.getElementById('sports-timer');
     const statusDisplay = document.getElementById('sports-status');
-
     if (globalRoundId !== roundId) {
         globalRoundId = roundId;
         for (let deporte in configDeportes) {
             iniciarRondaSincronizadaPorDeporte(deporte, roundId);
         }
     }
-
     if (faseApuestasAbierta) {
         timerDisplay.innerText = `${tiempoFase}s`;
         statusDisplay.innerHTML = "Fase de Apuestas - ¡Hagan sus juegos!";
@@ -1047,21 +880,17 @@ function cicloDeportes() {
         statusDisplay.innerHTML = `<img src="imagen_copa.png" class="custom-emoji" alt="Copa"> Competiciones en Vivo (Nuevo ciclo de apuestas en ${tiempoFase}s)`;
         statusDisplay.style.color = "#e74c3c";
     }
-
     if (!faseApuestasAbierta && secActuales === globalBetTime) {
         ticketSelecciones = [];
         actualizarUIBotones(); 
         actualizarTicketUI(); 
     }
-
     if (!faseApuestasAbierta) {
         let tiempoJugadoGlobal = secActuales - globalBetTime + 1;
-
         for (let deporte in configDeportes) {
             let conf = configDeportes[deporte];
             let minutoASimular = Math.min(tiempoJugadoGlobal, conf.playTime);
             simularMinutoPartidoPorDeporte(deporte, minutoASimular);
-
             let partidosDelDeporte = partidosActuales.filter(p => p.deporte === deporte);
             if (tiempoJugadoGlobal >= conf.playTime && partidosDelDeporte.length > 0 && !partidosDelDeporte[0].finalizado) {
                 finalizarPartidosPorDeporte(deporte);
@@ -1069,16 +898,13 @@ function cicloDeportes() {
             }
         }
     }
-
     renderizarMisPartidosEnVivo();
 }
-
 window.toggleBets = function(partidoId) {
     const panel = document.getElementById(`bets-${partidoId}`);
     if(panel.classList.contains('hidden')) panel.classList.remove('hidden');
     else panel.classList.add('hidden');
 }
-
 function generarHTMLBotonesApuesta(partido) {
     let h = `<div class="odds-grid">`;
     if (partido.deporte === 'Futbol') {
@@ -1116,23 +942,18 @@ function generarHTMLBotonesApuesta(partido) {
     h += `</div>`;
     return h;
 }
-
 function renderizarPartidos() {
     const contenedor = document.getElementById('contenedor-partidos');
     contenedor.innerHTML = ''; 
-
     let partidosParaMostrar = partidosActuales.filter(p => p.deporte === deporteActual && p.liga === ligaActual);
-
     if(partidosParaMostrar.length === 0) {
         contenedor.innerHTML = '<p>No hay eventos generados para esta liga en este deporte.</p>';
         return;
     }
-
     partidosParaMostrar.forEach(partido => {
         let centerSymbol = " : ";
         let resText = `${partido.golesL}${centerSymbol}${partido.golesV}`;
         let resStyle = "";
-        
         if(partido.deporte === 'UFC') {
             resStyle = "font-size: 16px;";
             if(partido.finalizadoGlobal || partido.finalizado) {
@@ -1141,10 +962,8 @@ function renderizarPartidos() {
                 resText = `<img src="imagen_ufc.png" class="custom-emoji" alt="UFC"> EN PELEA`;
             }
         }
-
         const matchCard = document.createElement('div');
         matchCard.className = 'match-card';
-        
         let canchaHTML = '';
         if (partido.deporte === 'Futbol') {
             canchaHTML = `
@@ -1154,7 +973,6 @@ function renderizarPartidos() {
                         <div class="circulo-central"></div>
                         <div class="area-local"></div>
                         <div class="area-visitante"></div>
-                        
                         <div id="puntito-tracker-${partido.id}" class="puntito-tracker">
                             <span id="player-name-${partido.id}" class="player-name-floating"></span>
                         </div>
@@ -1163,7 +981,6 @@ function renderizarPartidos() {
                 </div>
             `;
         }
-
         matchCard.innerHTML = `
             <div class="match-header">
                 <div class="team-info">
@@ -1181,52 +998,40 @@ function renderizarPartidos() {
                     <span class="team-stats">ATK: ${partido.visitante.estadistica_ataque} | DEF: ${partido.visitante.estadistica_defensa}</span>
                 </div>
             </div>
-            
             <button class="btn-toggle-cancha" onclick="toggleCancha('${partido.id}')"><img src="tele.png" class="custom-emoji" alt="TV"> Ver Partido Animado / Relatos</button>
             <div id="cancha-wrapper-${partido.id}" class="hidden">
-                
                 ${canchaHTML}
-                
                 <div id="estado-partido-${partido.id}" class="estado-inferior">Preparando equipos...</div>
-
                 <div class="match-events-container" id="events-${partido.id}">
                     ${partido.eventosUI.map(e => `<div>${e}</div>`).join('')}
                 </div>
             </div>
-
             <button class="btn-toggle-bets" onclick="toggleBets('${partido.id}')">Opciones de Apuesta ▼</button>
-
             <div id="bets-${partido.id}" class="betting-panel hidden">
                 ${generarHTMLBotonesApuesta(partido)}
             </div>
         `;
         contenedor.appendChild(matchCard);
     });
-
     if (!faseApuestasAbierta) deshabilitarBotonesApuesta();
     actualizarUIBotones();
 }
-
 function simularMinutoPartidoPorDeporte(deporte, minutoReal) {
     partidosActuales.filter(p => p.deporte === deporte).forEach(partido => {
-        
         let huboEvento = false;
         if (!partido.finalizado) {
             partido.eventos.forEach(ev => {
                 if (ev.minuto <= minutoReal && !ev.procesado) {
                     ev.procesado = true;
                     huboEvento = true;
-                    
                     if(deporte === 'Futbol') {
                         let minText = ev.minuto > 90 ? `90+${ev.minuto-90}'` : `${ev.minuto}'`;
-                        
                         if (ev.tipo === 'GOL') {
                             if (ev.equipo === 'L') partido.golesL++; else partido.golesV++;
                             partido.eventosUI.unshift(`<img src="imagen_cronometro.png" class="custom-emoji" alt="Tiempo"> <b>${minText}</b> - <img src="imagen_futbol.png" class="custom-emoji" alt="Futbol"> ${ev.texto}`);
                         } else {
                             partido.eventosUI.unshift(`<img src="imagen_cronometro.png" class="custom-emoji" alt="Tiempo"> <b>${minText}</b> - <img src="imagen_correr.png" class="custom-emoji" alt="Correr"> ${ev.texto}`);
                         }
-
                         actualizarCancha2D(partido.id, ev.x, ev.y, ev.texto, ev.tipo, ev.jugador, ev.equipo, partido.local.nombre, partido.visitante.nombre);
                     } 
                     else if (deporte === 'Basketball') {
@@ -1265,12 +1070,10 @@ function simularMinutoPartidoPorDeporte(deporte, minutoReal) {
                 }
             });
         }
-
         let displayMinuto = "";
         let partidoTerminado = partido.finalizadoGlobal; 
         let conf = configDeportes[deporte];
         let playLimit = conf.playTime;
-
         if (deporte === 'Futbol') {
             playLimit = 90 + partido.tiempoExtra;
             if (minutoReal > 90 && minutoReal <= playLimit) {
@@ -1290,7 +1093,6 @@ function simularMinutoPartidoPorDeporte(deporte, minutoReal) {
                 partido.finalizadoGlobal = true; 
             }
         }
-
         const isVisible = (deporte === deporteActual);
         if (isVisible) {
             const timerDisplay = document.getElementById(`timer-${partido.id}`);
@@ -1300,7 +1102,6 @@ function simularMinutoPartidoPorDeporte(deporte, minutoReal) {
                 else timerDisplay.style.color = "#f185ff";
             }
         }
-
         if ((huboEvento || minutoReal === 1 || partidoTerminado) && isVisible) { 
             const resDisplay = document.getElementById(`res-${partido.id}`);
             if(resDisplay) {
@@ -1317,33 +1118,25 @@ function simularMinutoPartidoPorDeporte(deporte, minutoReal) {
                     resDisplay.innerText = `${partido.golesL}${centerSymbol}${partido.golesV}`;
                 }
             }
-            
             const eventsDisplay = document.getElementById(`events-${partido.id}`);
             if(eventsDisplay) eventsDisplay.innerHTML = partido.eventosUI.map(e => `<div>${e}</div>`).join('');
         }
     });
 }
-
 function actualizarCancha2D(partidoId, xPercent, yPercent, texto, tipo, jugador, equipo, nombreLocal, nombreVisita) {
     const puntito = document.getElementById(`puntito-tracker-${partidoId}`);
     const textoCancha = document.getElementById(`texto-cancha-${partidoId}`);
     const playerName = document.getElementById(`player-name-${partidoId}`);
     const estadoInferior = document.getElementById(`estado-partido-${partidoId}`);
     const canchaContainer = document.getElementById(`cancha-container-${partidoId}`);
-    
     if (!puntito || !textoCancha) return;
-
     let rx = Math.max(5, Math.min(95, xPercent));
     let ry = Math.max(10, Math.min(90, yPercent));
-
     puntito.style.left = `${rx}%`;
     puntito.style.top = `${ry}%`;
-
     if (playerName) playerName.innerText = jugador || '';
     if (canchaContainer) canchaContainer.classList.remove('animacion-gol');
-    
     let equipoNombre = equipo === 'L' ? nombreLocal : nombreVisita;
-
     if (tipo === 'GOL') {
         puntito.style.backgroundColor = "#ff0000";
         puntito.style.boxShadow = "0 0 15px 5px rgba(255, 0, 0, 0.8)";
@@ -1362,10 +1155,8 @@ function actualizarCancha2D(partidoId, xPercent, yPercent, texto, tipo, jugador,
         puntito.style.boxShadow = "0 0 12px 4px rgba(255, 215, 0, 0.7)";
         if (estadoInferior) estadoInferior.innerText = `Posesión: ${equipoNombre}`;
     }
-
     textoCancha.innerText = texto;
 }
-
 function finalizarPartidosPorDeporte(deporte) {
     partidosActuales.filter(p => p.deporte === deporte).forEach(p => { 
         p.finalizado = true; 
@@ -1373,33 +1164,26 @@ function finalizarPartidosPorDeporte(deporte) {
     });
     resolverApuestas();
 }
-
 function deshabilitarBotonesApuesta() {
     document.querySelectorAll('.btn-odd').forEach(el => {
         el.disabled = true; el.style.opacity = '0.5'; el.style.cursor = 'not-allowed';
     });
 }
-
 function habilitarBotonesApuesta() {
     document.querySelectorAll('.btn-odd').forEach(el => {
         el.disabled = false; el.style.opacity = '1'; el.style.cursor = 'pointer';
     });
 }
-
 window.toggleSeleccion = function(partidoId, tipo, cuota, labelDesc, partidoNombres) {
     let p = partidosActuales.find(x => x.id === partidoId);
     if (!p || !faseApuestasAbierta) return; 
-
     const indexIndex = ticketSelecciones.findIndex(s => s.partidoId === partidoId);
-    
     if (indexIndex > -1) {
         if (ticketSelecciones[indexIndex].tipo === tipo) { ticketSelecciones.splice(indexIndex, 1); } 
         else { ticketSelecciones[indexIndex] = { partidoId, tipo, cuota, labelDesc, partidoNombres }; }
     } else { ticketSelecciones.push({ partidoId, tipo, cuota, labelDesc, partidoNombres }); }
-
     actualizarUIBotones(); actualizarTicketUI();
 }
-
 function actualizarUIBotones() {
     document.querySelectorAll('.btn-odd').forEach(btn => btn.classList.remove('selected'));
     ticketSelecciones.forEach(sel => {
@@ -1407,34 +1191,28 @@ function actualizarUIBotones() {
         if(btn) btn.classList.add('selected');
     });
 }
-
 window.toggleMobileTicket = function() {
     document.getElementById('bet-ticket').classList.toggle('show-mobile');
 };
 window.cerrarMobileTicket = function() {
     document.getElementById('bet-ticket').classList.remove('show-mobile');
 };
-
 function actualizarTicketUI() {
     const ticketPanel = document.getElementById('bet-ticket');
     const itemsContainer = document.getElementById('ticket-items');
     const floatingBtn = document.getElementById('btn-floating-ticket');
     const floatingCount = document.getElementById('floating-ticket-count');
-    
     if (ticketSelecciones.length === 0) {
         ticketPanel.classList.add('hidden'); 
         if(floatingBtn) floatingBtn.classList.add('hidden');
         return;
     }
-
     ticketPanel.classList.remove('hidden');
     if(floatingBtn) {
         floatingBtn.classList.remove('hidden');
         if(floatingCount) floatingCount.innerText = ticketSelecciones.length;
     }
-
     itemsContainer.innerHTML = '';
-
     ticketSelecciones.forEach((sel, index) => {
         itemsContainer.innerHTML += `
             <div class="ticket-item">
@@ -1447,34 +1225,27 @@ function actualizarTicketUI() {
             </div>
         `;
     });
-
     const tipoLabel = ticketSelecciones.length === 1 ? 'Simple' : 'Combinada';
     document.getElementById('ticket-type').innerText = tipoLabel;
-
     let cuotaTotal = ticketSelecciones.reduce((acc, sel) => acc * sel.cuota, 1);
     document.getElementById('ticket-total-odds').innerText = cuotaTotal.toFixed(2);
-
     actualizarGanancia();
 }
-
 window.removerDelTicket = function(index) {
     ticketSelecciones.splice(index, 1);
     actualizarUIBotones(); actualizarTicketUI();
 }
-
 window.limpiarTicket = function() {
     ticketSelecciones = [];
     document.getElementById('ticket-amount').value = '';
     actualizarUIBotones(); actualizarTicketUI();
 }
-
 window.sumarMontoTicket = function(cantidad) {
     const input = document.getElementById('ticket-amount');
     let actual = parseFloat(input.value) || 0;
     input.value = actual + cantidad;
     actualizarGanancia();
 }
-
 window.actualizarGanancia = function() {
     const input = document.getElementById('ticket-amount');
     let monto = parseFloat(input.value) || 0;
@@ -1482,7 +1253,6 @@ window.actualizarGanancia = function() {
     let ganancia = monto * cuotaTotal;
     document.getElementById('ticket-potential-win').innerText = `$${ganancia.toFixed(2)}`;
 }
-
 window.confirmarApuesta = function() {
     if (ticketSelecciones.length === 0) return;
     if (!faseApuestasAbierta) return;
@@ -1494,15 +1264,9 @@ window.confirmarApuesta = function() {
         let p = partidosActuales.find(x => x.id === sel.partidoId);
         if(!p) return;
     }
-
     const input = document.getElementById('ticket-amount');
     const monto = parseFloat(input.value);
     if (isNaN(monto) || monto <= 0) return;
-
-    // La apuesta se paga con la billetera que el jugador tenga elegida
-    // (real o bono). Si gana, el pago SIEMPRE se acredita al saldo real
-    // más adelante (eso ya lo hace actualizarSaldoBD cuando se resuelve
-    // la apuesta) — la plata de bono usada como seña no vuelve a bono.
     const modoBilletera = obtenerModoBilletera();
     if (modoBilletera === 'bono') {
         if (monto > currentBono) return;
@@ -1514,9 +1278,7 @@ window.confirmarApuesta = function() {
         registrarTransaccion(currentUserId, 'apuesta', -monto, currentSaldo, 'Apuesta deportiva');
     }
     sumarTotalApostado(monto);
-
     let cuotaTotal = ticketSelecciones.reduce((acc, sel) => acc * sel.cuota, 1);
-
     const nuevaApuesta = {
         tipoBoleta: ticketSelecciones.length === 1 ? 'Simple' : 'Combinada',
         selecciones: [...ticketSelecciones],
@@ -1526,12 +1288,10 @@ window.confirmarApuesta = function() {
         estado: 'pendiente',
         resuelta: false
     };
-
     guardarApuestaBD(nuevaApuesta);
     limpiarTicket();
     cerrarMobileTicket();
 }
-
 function renderizarHistorial() {
     const contenedor = document.getElementById('history-items');
     if (!apuestasUsuario || apuestasUsuario.length === 0) {
@@ -1541,22 +1301,18 @@ function renderizarHistorial() {
     }
     contenedor.innerHTML = '';
     const historialReverso = [...apuestasUsuario].reverse();
-
     historialReverso.forEach(apuesta => {
         let estadoClass = ''; let estadoTexto = '';
-
         if (apuesta.estado === 'pendiente') { estadoClass = 'status-pending'; estadoTexto = 'Pendiente ⏳'; } 
         else if (apuesta.estado === 'ganada') { estadoClass = 'status-won'; estadoTexto = 'Ganada ✅'; } 
         else if (apuesta.estado === 'perdida') { estadoClass = 'status-lost'; estadoTexto = 'Perdida ❌'; } 
         else if (apuesta.estado === 'cancelada') { estadoClass = 'status-pending'; estadoTexto = 'Cancelada 🔄'; }
-
         let seleccionesHTML = '';
         if (apuesta.selecciones && Array.isArray(apuesta.selecciones)) {
             seleccionesHTML = apuesta.selecciones.map(sel => 
                 `<div class="hist-sel-row"><span class="hist-match">${sel.partidoNombres}</span><span class="hist-pick">${sel.labelDesc} (${(sel.cuota || 0).toFixed(2)})</span></div>`
             ).join('');
         }
-
         contenedor.innerHTML += `
             <div class="history-item ${estadoClass}">
                 <div class="hist-header"><span class="hist-type">${apuesta.tipoBoleta}</span><span class="hist-status">${estadoTexto}</span></div>
@@ -1568,10 +1324,8 @@ function renderizarHistorial() {
             </div>
         `;
     });
-    
     renderizarMisPartidosEnVivo();
 }
-
 function verificarSeleccion(seleccion, partido) {
     if (partido.deporte === 'Futbol') {
         const gl = partido.golesFinalesL;
@@ -1621,20 +1375,15 @@ function verificarSeleccion(seleccion, partido) {
     }
     return false;
 }
-
 function resolverApuestas() {
     let gananciasRonda = 0;
-
     apuestasUsuario.forEach(apuesta => {
         if (apuesta.resuelta) return; 
-
         let todosFinalizados = true;
         let boletaGanadora = true;
         let partidoExtraviado = false;
-
         for (let sel of apuesta.selecciones) {
             const partidoReal = partidosActuales.find(p => p.id === sel.partidoId);
-            
             if (partidoReal) {
                 if (!partidoReal.finalizado) {
                     todosFinalizados = false; break;
@@ -1645,11 +1394,8 @@ function resolverApuestas() {
                 partidoExtraviado = true; 
             }
         }
-
         if (!todosFinalizados) return; 
-
         apuesta.resuelta = true; 
-
         if (partidoExtraviado) {
             apuesta.estado = 'cancelada';
             apuesta.gananciaPosible = apuesta.monto; 
@@ -1660,31 +1406,24 @@ function resolverApuestas() {
         } else {
             apuesta.estado = 'perdida';
         }
-        
         if(apuesta.id) actualizarApuestaBD(apuesta.id, apuesta.estado, apuesta.resuelta);
     });
-
     if (gananciasRonda > 0) {
         actualizarSaldoBD(gananciasRonda);
     }
-    
     renderizarHistorial();
 }
-
 async function resolverApuestasOffline() {
     if (!currentUserId || equiposGlobales.length === 0) return;
     const now = Math.floor(Date.now() / 1000);
     let currentGlobalRoundId = Math.floor(now / globalCycleLength);
-
     let actualizadas = false;
     let gananciasRecuperadas = 0;
-
     for (let apuesta of apuestasUsuario) {
         if (apuesta.estado === 'pendiente' && !apuesta.resuelta) {
             let todosFinalizados = true;
             let boletaGanadora = true;
             let partidoExtraviado = false;
-
             for (let sel of apuesta.selecciones) {
                 let parts = sel.partidoId.split('_');
                 if (parts.length >= 5) {
@@ -1692,19 +1431,16 @@ async function resolverApuestasOffline() {
                     let visId = parts[2];
                     let deporte = parts[3];
                     let pRoundId = parseInt(parts[4]);
-
                     if (pRoundId < currentGlobalRoundId) {
                         let seedObj = { val: (pRoundId * 1000) + deporte.length };
                         let local = equiposGlobales.find(e => e.id == localId);
                         let visitante = equiposGlobales.find(e => e.id == visId);
-
                         if(local && visitante) {
                             let partidoFantasma = { local, visitante, deporte, eventos: [] };
                             if (deporte === 'Futbol') precalcularFutbol(partidoFantasma, seedObj);
                             else if (deporte === 'Basketball') precalcularBasketball(partidoFantasma, seedObj);
                             else if (deporte === 'UFC') precalcularUFC(partidoFantasma, seedObj);
                             else if (deporte === 'Tenis') precalcularTenis(partidoFantasma, seedObj);
-                            
                             if (!verificarSeleccion(sel, partidoFantasma)) {
                                 boletaGanadora = false;
                             }
@@ -1718,7 +1454,6 @@ async function resolverApuestasOffline() {
                     partidoExtraviado = true; 
                 }
             }
-
             if (todosFinalizados) {
                 apuesta.resuelta = true;
                 if (partidoExtraviado) {
@@ -1736,46 +1471,37 @@ async function resolverApuestasOffline() {
             }
         }
     }
-
     if (gananciasRecuperadas > 0) { actualizarSaldoBD(gananciasRecuperadas); }
     if (actualizadas) { renderizarHistorial(); }
 }
-
 setInterval(() => {
     if(currentUserId && apuestasUsuario.some(a => a.estado === 'pendiente')) {
         resolverApuestasOffline();
     }
 }, 15000);
-
 function renderizarMisPartidosEnVivo() {
     const contenedor = document.getElementById('live-user-matches');
     if (!contenedor) return;
-
     let partidosApostadosIds = new Set();
     apuestasUsuario.forEach(apuesta => {
         if (apuesta.estado === 'pendiente' && apuesta.selecciones) {
             apuesta.selecciones.forEach(sel => partidosApostadosIds.add(sel.partidoId));
         }
     });
-
     let partidosEnVivo = partidosActuales.filter(p => partidosApostadosIds.has(p.id));
-
     if (partidosEnVivo.length === 0) {
         contenedor.innerHTML = '<p class="empty-msg">No tienes apuestas activas en vivo en este momento.</p>';
         return;
     }
-
     let html = '';
     const now = Math.floor(Date.now() / 1000); 
     let secActuales = now % globalCycleLength;
     let tiempoJugadoGlobal = secActuales - globalBetTime + 1;
     let enFaseApuestas = secActuales < globalBetTime;
-
     partidosEnVivo.forEach(p => {
         let resText = p.deporte === 'UFC' ? `<img src="imagen_ufc.png" class="custom-emoji" alt="UFC"> EN PELEA` : `${p.golesL} : ${p.golesV}`;
         let display = "Por empezar...";
         let pTerminado = p.finalizado || p.finalizadoGlobal;
-
         if (enFaseApuestas) {
             display = "Fase de Apuestas";
         } else if (tiempoJugadoGlobal > 0) {
@@ -1791,16 +1517,13 @@ function renderizarMisPartidosEnVivo() {
                 if (m >= conf.playTime) pTerminado = true;
             }
         }
-
         if (pTerminado) {
             display = "FINAL";
             if(p.deporte === 'UFC') {
                 resText = `Gana: ${p.resultado.ganador === 'L' ? p.local.nombre : p.visitante.nombre}`;
             }
         }
-        
         let timeStyle = pTerminado ? "color: #ff4d4d;" : "color: #f185ff;";
-        
         html += `
             <div class="live-match-item">
                 <div class="live-match-teams">
@@ -1814,14 +1537,8 @@ function renderizarMisPartidosEnVivo() {
             </div>
         `;
     });
-    
     contenedor.innerHTML = html;
 }
-
-// =========================================================================
-// CUENTA, DEPÓSITO, DESCANSO 12H, CHAT
-// =========================================================================
-
 function inicializarCuentaUI() {
     const profileBtn = document.getElementById('btn-profile-toggle');
     const dropdown = document.getElementById('profile-dropdown');
@@ -1834,7 +1551,6 @@ function inicializarCuentaUI() {
             if (!e.target.closest('.profile-menu-wrapper')) dropdown.classList.remove('open');
         });
     }
-
     const eye = document.getElementById('btn-toggle-saldo');
     if (eye) {
         eye.addEventListener('click', (e) => {
@@ -1845,7 +1561,6 @@ function inicializarCuentaUI() {
         });
     }
     if (localStorage.getItem('saldoVisible') === '0') saldoVisible = false;
-
     const refresh = document.getElementById('btn-refresh-saldo');
     if (refresh) {
         refresh.addEventListener('click', async (e) => {
@@ -1853,24 +1568,20 @@ function inicializarCuentaUI() {
             if (currentUserId) await cargarSaldoYDatos(currentUserId);
         });
     }
-
     const openDep = document.getElementById('btn-open-deposit');
     const closeDep = document.getElementById('btn-close-deposit');
     const backdrop = document.getElementById('deposit-backdrop');
     if (openDep) openDep.addEventListener('click', abrirDeposito);
     if (closeDep) closeDep.addEventListener('click', cerrarDeposito);
     if (backdrop) backdrop.addEventListener('click', cerrarDeposito);
-
     const sendDep = document.getElementById('btn-send-deposit');
     if (sendDep) sendDep.addEventListener('click', enviarSolicitudDeposito);
-
     document.querySelectorAll('#deposit-form .quick-amounts button').forEach((btn) => {
         btn.addEventListener('click', () => {
             const input = document.getElementById('deposit-request-amount');
             input.value = (parseFloat(input.value) || 0) + Number(btn.dataset.add);
         });
     });
-
     const chatFab = document.getElementById('btn-chat-fab');
     const chatClose = document.getElementById('btn-chat-close');
     const chatForm = document.getElementById('chat-form');
@@ -1879,25 +1590,20 @@ function inicializarCuentaUI() {
     if (chatClose) chatClose.addEventListener('click', () => document.getElementById('chat-panel').classList.add('hidden'));
     if (chatHeader) chatHeader.addEventListener('click', toggleChat);
     if (chatForm) chatForm.addEventListener('submit', enviarMensajeChat);
-
     const bannerBtn = document.getElementById('btn-banner-descanso');
     if (bannerBtn) {
         bannerBtn.addEventListener('click', () => {
             window.location.href = 'cuenta.html#proteccion';
         });
     }
-
     const tLogout = document.getElementById('btn-timeout-logout');
     if (tLogout) tLogout.addEventListener('click', cerrarSesion);
-
     const dropSupport = document.getElementById('drop-support');
     if (dropSupport) dropSupport.addEventListener('click', toggleChat);
-
     const btnGameClose = document.getElementById('btn-game-close');
     const btnGameFull = document.getElementById('btn-game-fullscreen');
     if (btnGameClose) btnGameClose.addEventListener('click', cerrarJuegoModal);
     if (btnGameFull) btnGameFull.addEventListener('click', toggleFullscreenJuego);
-
     const openOf = document.getElementById('btn-open-ofertas');
     const closeOf = document.getElementById('btn-close-ofertas');
     const closeOf2 = document.getElementById('btn-close-ofertas-2');
@@ -1909,9 +1615,7 @@ function inicializarCuentaUI() {
     if (backOf) backOf.addEventListener('click', volverListaOfertas);
     if (backdropOf) backdropOf.addEventListener('click', cerrarOfertas);
 }
-
 let ofertasCache = [];
-
 function abrirOfertas() {
     document.getElementById('ofertas-panel').classList.remove('hidden');
     document.getElementById('ofertas-backdrop').classList.remove('hidden');
@@ -1919,18 +1623,15 @@ function abrirOfertas() {
     volverListaOfertas();
     cargarOfertas();
 }
-
 function cerrarOfertas() {
     document.getElementById('ofertas-panel').classList.add('hidden');
     document.getElementById('ofertas-backdrop').classList.add('hidden');
     document.getElementById('ofertas-panel').setAttribute('aria-hidden', 'true');
 }
-
 function volverListaOfertas() {
     document.getElementById('ofertas-vista-detalle').classList.add('hidden');
     document.getElementById('ofertas-vista-lista').classList.remove('hidden');
 }
-
 async function cargarOfertas() {
     const box = document.getElementById('ofertas-lista');
     try {
@@ -1958,7 +1659,6 @@ async function cargarOfertas() {
         box.innerHTML = '<p class="empty-msg">Corré el SQL de "novedades" para activar este panel.</p>';
     }
 }
-
 function mostrarDetalleOferta(id) {
     const o = ofertasCache.find((x) => String(x.id) === String(id));
     if (!o) return;
@@ -1966,7 +1666,6 @@ function mostrarDetalleOferta(id) {
     document.getElementById('oferta-detalle-cat').innerText = o.categoria || 'Novedad';
     document.getElementById('oferta-detalle-titulo').innerText = o.titulo || '';
     document.getElementById('oferta-detalle-desc').innerText = o.descripcion || '';
-
     const pasosBox = document.getElementById('oferta-detalle-pasos');
     let pasos = o.pasos;
     if (typeof pasos === 'string') {
@@ -1979,11 +1678,9 @@ function mostrarDetalleOferta(id) {
     } else {
         pasosBox.innerHTML = '';
     }
-
     document.getElementById('ofertas-vista-lista').classList.add('hidden');
     document.getElementById('ofertas-vista-detalle').classList.remove('hidden');
 }
-
 function abrirDeposito() {
     if (bloqueoActivo) {
         aplicarBloqueoResponsable();
@@ -1994,13 +1691,11 @@ function abrirDeposito() {
     document.getElementById('deposit-drawer').setAttribute('aria-hidden', 'false');
     cargarOperadoresDeposito();
 }
-
 function cerrarDeposito() {
     document.getElementById('deposit-drawer').classList.add('hidden');
     document.getElementById('deposit-backdrop').classList.add('hidden');
     document.getElementById('deposit-drawer').setAttribute('aria-hidden', 'true');
 }
-
 async function cargarOperadoresDeposito() {
     const select = document.getElementById('deposit-operador');
     const operadores = await cargarListaOperadores();
@@ -2008,12 +1703,10 @@ async function cargarOperadoresDeposito() {
     operadores.forEach((o) => { operadoresMapScript[o.id] = o.username; });
     pintarSelectOperadores(select, operadores);
 }
-
 function nombreOperadorScript(id) {
     if (!id) return 'Sin asignar';
     return operadoresMapScript[id] || 'Operador';
 }
-
 async function enviarSolicitudDeposito() {
     const msg = document.getElementById('deposit-request-msg');
     if (bloqueoActivo) {
@@ -2058,7 +1751,6 @@ async function enviarSolicitudDeposito() {
     document.getElementById('deposit-request-amount').value = 5000;
     cargarUltimoDeposito();
 }
-
 async function cargarUltimoDeposito() {
     const box = document.getElementById('last-deposit-info');
     if (!box || !currentUserId) return;
@@ -2076,7 +1768,6 @@ async function cargarUltimoDeposito() {
     const detalle = s.tipo === 'retiro' ? 'Retiro' : ('Para ' + escapeHtml(nombreOperadorScript(s.operador_id)));
     box.innerHTML = `${formatMoney(s.monto)} · ${detalle} · ${escapeHtml(s.estado)}<br><small>${formatFecha(s.created_at)}</small>`;
 }
-
 function aplicarBloqueoResponsable() {
     bloqueoActivo = timeoutActivo(currentPerfil);
     const overlay = document.getElementById('timeout-overlay');
@@ -2120,14 +1811,12 @@ function aplicarBloqueoResponsable() {
     const fab = document.getElementById('btn-chat-fab');
     if (fab) fab.classList.remove('hidden');
 }
-
 function ocultarOverlayTimeout() {
     const overlay = document.getElementById('timeout-overlay');
     if (overlay) overlay.classList.add('hidden');
     if (timeoutTimer) { clearInterval(timeoutTimer); timeoutTimer = null; }
     bloqueoActivo = null;
 }
-
 setInterval(async () => {
     if (!currentUserId) return;
     const data = await cargarPerfilCompleto(currentUserId);
@@ -2138,7 +1827,6 @@ setInterval(async () => {
         aplicarBloqueoResponsable();
     }
 }, 12000);
-
 function toggleChat() {
     const panel = document.getElementById('chat-panel');
     panel.classList.toggle('hidden');
@@ -2148,7 +1836,6 @@ function toggleChat() {
         if (badge) badge.classList.add('hidden');
     }
 }
-
 function detenerChat() {
     if (chatChannel) {
         supabaseClient.removeChannel(chatChannel);
@@ -2159,7 +1846,6 @@ function detenerChat() {
     const panel = document.getElementById('chat-panel');
     if (panel) panel.classList.add('hidden');
 }
-
 async function iniciarChatJugador() {
     const fab = document.getElementById('btn-chat-fab');
     if (fab) fab.classList.remove('hidden');
@@ -2186,7 +1872,6 @@ async function iniciarChatJugador() {
         })
         .subscribe();
 }
-
 async function cargarMensajesChat() {
     const box = document.getElementById('chat-messages');
     if (!box || !currentUserId) return;
@@ -2208,7 +1893,6 @@ async function cargarMensajesChat() {
     data.forEach(appendChatMessage);
     box.scrollTop = box.scrollHeight;
 }
-
 function appendChatMessage(m) {
     const box = document.getElementById('chat-messages');
     if (!box) return;
@@ -2220,7 +1904,6 @@ function appendChatMessage(m) {
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 }
-
 async function enviarMensajeChat(e) {
     e.preventDefault();
     const input = document.getElementById('chat-input');
@@ -2240,7 +1923,6 @@ async function enviarMensajeChat(e) {
         });
     }
 }
-
 window.toggleSeleccion = (function (original) {
     return function (partidoId, tipo, cuota, labelDesc, partidoNombres) {
         if (bloqueoActivo) {
@@ -2250,63 +1932,17 @@ window.toggleSeleccion = (function (original) {
         return original(partidoId, tipo, cuota, labelDesc, partidoNombres);
     };
 })(window.toggleSeleccion);
-
-
-// ======================= ESTADISTICAS =======================
-async function registrarEventoJuego(gameName, eventType = 'jugada', amount = 0, lostAmount = 0) {
-    if (!currentUserId || !gameName) return;
-    try {
-        await supabaseClient.from('estadisticas_juegos').insert([{
-            user_id: currentUserId, game_name: String(gameName).slice(0, 120), event_type: eventType, amount: Number(amount) || 0, lost_amount: Number(lostAmount) || 0
-        }]);
-    } catch (e) { console.warn('No se pudo registrar estadística de juego', e); }
-}
-
-function renderStatsList(id, rows, valueLabel, money = false) {
-    const box = document.getElementById(id);
-    if (!box) return;
-    if (!rows || !rows.length) { box.innerHTML = '<p class="empty-msg">Todavía no hay datos.</p>'; return; }
-    box.innerHTML = rows.map((r, i) => `<div class="stats-row"><span><b>${i + 1}.</b> ${escapeHtml(String(r.name || 'Sin nombre'))}</span><strong>${money ? formatMoney(Number(r.value || 0)) : Number(r.value || 0).toLocaleString('es-AR')} ${money ? '' : valueLabel}</strong></div>`).join('');
-}
-
-async function cargarEstadisticas() {
-    const ids = ['stats-juegos-jugados','stats-juegos-dinero','stats-usuarios-cargaron','stats-usuarios-apostaron','stats-usuarios-retiraron'];
-    ids.forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML='<p>Cargando...</p>'; });
-    try {
-        const [{data: juegos}, {data: apuestas}, {data: cargas}, {data: perfiles}] = await Promise.all([
-            supabaseClient.from('estadisticas_juegos').select('game_name,event_type,amount'),
-            supabaseClient.from('historial_apuestas').select('user_id,monto'),
-            supabaseClient.from('solicitudes_carga').select('user_id,monto,tipo,estado'),
-            supabaseClient.from('perfiles').select('id,username')
-        ]);
-        const names = Object.fromEntries((perfiles || []).map(p => [p.id, p.username || p.id.slice(0,8)]));
-        const gj = {}; const gd = {};
-        (juegos || []).forEach(x => { const n=x.game_name||'Juego'; if((x.event_type||'jugada')==='jugada') gj[n]=(gj[n]||0)+1; if((x.event_type||'')==='apuesta') gd[n]=(gd[n]||0)+Number(x.amount||0); });
-        renderStatsList('stats-juegos-jugados', Object.entries(gj).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value).slice(0,3), 'jugadas');
-        renderStatsList('stats-juegos-dinero', Object.entries(gd).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value).slice(0,3), '', true);
-        const sums=(tipo)=>{const o={}; (cargas||[]).filter(x=>x.tipo===tipo && ['aprobado','completado','confirmado','procesado'].includes(String(x.estado||'').toLowerCase())).forEach(x=>o[x.user_id]=(o[x.user_id]||0)+Number(x.monto||0)); return Object.entries(o).map(([id,value])=>({name:names[id]||id.slice(0,8),value})).sort((a,b)=>b.value-a.value).slice(0,5)};
-        renderStatsList('stats-usuarios-cargaron', sums('deposito'), '', true);
-        const apost={}; (apuestas||[]).forEach(x=>apost[x.user_id]=(apost[x.user_id]||0)+Number(x.monto||0));
-        renderStatsList('stats-usuarios-apostaron', Object.entries(apost).map(([id,value])=>({name:names[id]||id.slice(0,8),value})).sort((a,b)=>b.value-a.value).slice(0,5), '', true);
-        renderStatsList('stats-usuarios-retiraron', sums('retiro'), '', true);
-    } catch (e) {
-        console.error(e); ids.forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML='<p class="empty-msg">No se pudieron cargar las estadísticas. Ejecutá el SQL incluido.</p>'; });
-    }
-}
-
 async function comprobarAvisoPerdida50() {
     if (!currentUserId) return;
     try {
-        const [{data:cargas},{data:apuestas},{data:eventos}] = await Promise.all([
+        const [{data:cargas},{data:apuestas}] = await Promise.all([
             supabaseClient.from('solicitudes_carga').select('monto,tipo,estado').eq('user_id',currentUserId),
-            supabaseClient.from('historial_apuestas').select('monto,estado').eq('user_id',currentUserId),
-            supabaseClient.from('estadisticas_juegos').select('lost_amount').eq('user_id',currentUserId)
+            supabaseClient.from('historial_apuestas').select('monto,estado').eq('user_id',currentUserId)
         ]);
         const cargado=(cargas||[]).filter(x=>x.tipo==='deposito' && ['aprobado','completado','confirmado','procesado'].includes(String(x.estado||'').toLowerCase())).reduce((s,x)=>s+Number(x.monto||0),0);
         const perdidoHist=(apuestas||[]).filter(x=>x.estado==='perdida').reduce((s,x)=>s+Number(x.monto||0),0);
-        const perdidoJuegos=(eventos||[]).reduce((s,x)=>s+Number(x.lost_amount||0),0);
         if (cargado <= 0) return;
-        const nivel=Math.floor(((perdidoHist+perdidoJuegos)/cargado)*2);
+        const nivel=Math.floor((perdidoHist/cargado)*2);
         const key='victory_loss_warning_'+currentUserId;
         const visto=Number(localStorage.getItem(key)||0);
         if (nivel>visto && nivel>=1) {
@@ -2315,5 +1951,4 @@ async function comprobarAvisoPerdida50() {
         }
     } catch(e) { console.warn('No se pudo comprobar el aviso de pérdida',e); }
 }
-
 setInterval(() => { if (currentUserId) comprobarAvisoPerdida50(); }, 30000);
